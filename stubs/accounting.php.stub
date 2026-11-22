@@ -1,0 +1,16 @@
+<?php
+
+return [
+    'tenancy_mode' => '{{TENANCY_MODE}}',
+    'currency' => '{{CURRENCY}}',
+    'fy_start' => {{FY_START}},
+    'route_prefix' => '{{ROUTE_PREFIX}}',
+    'middleware' => [{{MIDDLEWARE}}],
+    'features' => [
+        'tax_splitting' => {{TAX_SPLITTING}},
+        'discount_splitting' => {{DISCOUNT_SPLITTING}},
+    ],
+    'auth' => [
+        'guard' => \Jtech\Accounting\Auth\DefaultAccountingAuth::class,
+    ],
+];
