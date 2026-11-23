@@ -5,6 +5,7 @@ namespace Abdiaziizaweis\Accounting\Services;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Database\Migration\TenancySchemaHelper;
 use Abdiaziizaweis\Accounting\Contracts\AccountingDocumentInterface;
 use Abdiaziizaweis\Accounting\Enums\AccountingModule;
 use Abdiaziizaweis\Accounting\Models\AccountingBranchSetting;
@@ -42,7 +43,7 @@ class AccountingDocumentBridge
         $this->safe(function () use ($document) {
             $context = app(AccountingContextInterface::class);
             $branchId = $context->getBranchId();
-            if ($branchId !== null && $branchId < 1) {
+            if (TenancySchemaHelper::usesBranchId() && ($branchId === null || $branchId < 1)) {
                 return;
             }
 
@@ -59,7 +60,7 @@ class AccountingDocumentBridge
             $module = $document->getDocumentModule() ?: ($inferred['module'] ?? null);
             $mappingDocumentType = $inferred['document_type'] ?? null;
 
-            $attrs = [
+            $attrs = TenancySchemaHelper::filterTenantAttributes([
                 'organization_id' => $context->getOrganizationId(),
                 'branch_id' => $branchId,
                 'owner_user_id' => $this->ownerUserId($document, $context),
@@ -72,7 +73,7 @@ class AccountingDocumentBridge
                 'reference' => $document->getReference(),
                 'module' => $module,
                 'document_type' => $mappingDocumentType,
-            ];
+            ]);
 
             $invoiceSplitTypes = [...self::SALES_INVOICE_TX_TYPES, 'purchase_invoice'];
             $attrs['auto_map'] = ! in_array($type, $invoiceSplitTypes, true);
@@ -232,7 +233,7 @@ class AccountingDocumentBridge
         float $taxAmount,
         float $discountAmount
     ): void {
-        $branchId = (int) $tx->branch_id;
+        $branchId = TenancySchemaHelper::usesBranchId() ? (int) $tx->branch_id : null;
         $resolvedDoc = $this->resolver->resolveDocument($module, 'invoice', $branchId);
         if (! $resolvedDoc) {
             return;
@@ -277,7 +278,7 @@ class AccountingDocumentBridge
         float $taxAmount,
         float $discountAmount
     ): void {
-        $branchId = (int) $tx->branch_id;
+        $branchId = TenancySchemaHelper::usesBranchId() ? (int) $tx->branch_id : null;
         $resolvedDoc = $this->resolver->resolveDocument(AccountingModule::Purchase->value, 'invoice', $branchId);
         if (! $resolvedDoc) {
             return;
@@ -317,11 +318,25 @@ class AccountingDocumentBridge
         $this->transactions->mapWithLines($tx, $lines);
     }
 
-    protected function branchSettings(int $branchId): ?AccountingBranchSetting
+    protected function branchSettings(?int $branchId = null): ?AccountingBranchSetting
     {
-        return AccountingBranchSetting::withoutGlobalScopes()
-            ->where('branch_id', $branchId)
-            ->first();
+        $query = AccountingBranchSetting::withoutGlobalScopes();
+
+        if (TenancySchemaHelper::usesBranchId() && $branchId !== null && $branchId > 0) {
+            return $query->where('branch_id', $branchId)->first();
+        }
+
+        if (TenancySchemaHelper::isSingleTenant()) {
+            return $query->orderBy('id')->first();
+        }
+
+        if (TenancySchemaHelper::usesOrganizationId()) {
+            $orgId = app(AccountingContextInterface::class)->getOrganizationId();
+
+            return $query->where('organization_id', $orgId)->first();
+        }
+
+        return null;
     }
 
     protected function ownerUserId(AccountingDocumentInterface $document, AccountingContextInterface $context): ?int

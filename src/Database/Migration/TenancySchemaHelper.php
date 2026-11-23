@@ -16,6 +16,25 @@ class TenancySchemaHelper
         return self::mode() === 'single_tenant';
     }
 
+    /**
+     * Remove organization_id / branch_id keys when the current tenancy mode has no such columns.
+     *
+     * @param  array<string, mixed>  $attributes
+     * @return array<string, mixed>
+     */
+    public static function filterTenantAttributes(array $attributes): array
+    {
+        if (! self::usesOrganizationId()) {
+            unset($attributes['organization_id']);
+        }
+
+        if (! self::usesBranchId()) {
+            unset($attributes['branch_id']);
+        }
+
+        return $attributes;
+    }
+
     public static function usesOrganizationId(): bool
     {
         return in_array(self::mode(), ['multi_tenant', 'multi_tenant_multi_branch'], true);

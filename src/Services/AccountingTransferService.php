@@ -4,6 +4,7 @@ namespace Abdiaziizaweis\Accounting\Services;
 
 use Abdiaziizaweis\Accounting\Contracts\AccountingAuditInterface;
 use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Database\Migration\TenancySchemaHelper;
 
 use Abdiaziizaweis\Accounting\Enums\AccountingJournalSource;
 use Abdiaziizaweis\Accounting\Models\AccountingTransfer;
@@ -54,16 +55,18 @@ class AccountingTransferService
             $orgId = (int) ($data['organization_id'] ?? app(AccountingContextInterface::class)->getOrganizationId());
             $branchId = (int) ($data['branch_id'] ?? app(AccountingContextInterface::class)->getBranchId());
 
-            $transfer = AccountingTransfer::withoutGlobalScopes()->create([
-                'organization_id' => $orgId,
-                'branch_id' => $branchId,
-                'owner_user_id' => $data['owner_user_id'] ?? null,
-                'from_account_id' => (int) $data['from_account_id'],
-                'to_account_id' => (int) $data['to_account_id'],
-                'amount' => $amount,
-                'transfer_date' => $data['transfer_date'],
-                'notes' => $data['notes'] ?? null,
-            ]);
+            $transfer = AccountingTransfer::withoutGlobalScopes()->create(
+                TenancySchemaHelper::filterTenantAttributes([
+                    'organization_id' => $orgId,
+                    'branch_id' => $branchId,
+                    'owner_user_id' => $data['owner_user_id'] ?? null,
+                    'from_account_id' => (int) $data['from_account_id'],
+                    'to_account_id' => (int) $data['to_account_id'],
+                    'amount' => $amount,
+                    'transfer_date' => $data['transfer_date'],
+                    'notes' => $data['notes'] ?? null,
+                ])
+            );
 
             $lines = $this->journals->twoLineMapping(
                 (int) $data['to_account_id'],
@@ -72,16 +75,19 @@ class AccountingTransferService
                 $data['notes'] ?? 'Transfer'
             );
 
-            $entry = $this->journals->createFromMapping([
-                'organization_id' => $orgId,
-                'branch_id' => $branchId,
-                'owner_user_id' => $data['owner_user_id'] ?? null,
-                'journal_date' => $data['transfer_date'],
-                'description' => $data['notes'] ?? 'Account transfer',
-                'reference' => 'TR-'.$transfer->id,
-                'source' => AccountingJournalSource::Transfer,
-                'accounting_transfer_id' => $transfer->id,
-            ], $lines);
+            $entry = $this->journals->createFromMapping(
+                TenancySchemaHelper::filterTenantAttributes([
+                    'organization_id' => $orgId,
+                    'branch_id' => $branchId,
+                    'owner_user_id' => $data['owner_user_id'] ?? null,
+                    'journal_date' => $data['transfer_date'],
+                    'description' => $data['notes'] ?? 'Account transfer',
+                    'reference' => 'TR-'.$transfer->id,
+                    'source' => AccountingJournalSource::Transfer,
+                    'accounting_transfer_id' => $transfer->id,
+                ]),
+                $lines
+            );
 
             $transfer->update(['journal_entry_id' => $entry->id]);
 

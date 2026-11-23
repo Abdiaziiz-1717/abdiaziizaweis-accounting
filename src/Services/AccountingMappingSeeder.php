@@ -33,14 +33,16 @@ class AccountingMappingSeeder
         DB::transaction(function () use ($organizationId, $branchId, $ownerUserId, $force) {
             $this->coa->seedDefaultsForBranch($organizationId, $branchId, $ownerUserId);
 
-            $paymentMethodClass = config('accounting.models.payment_method', \App\Models\PaymentMethod::class);
-            if (is_string($paymentMethodClass) && class_exists($paymentMethodClass) && method_exists($paymentMethodClass, 'seedDefaultsForOrganization')) {
-                $paymentMethodClass::seedDefaultsForOrganization($organizationId, $ownerUserId);
-            }
+            if (TenancySchemaHelper::usesOrganizationId()) {
+                $paymentMethodClass = config('accounting.models.payment_method', \App\Models\PaymentMethod::class);
+                if (is_string($paymentMethodClass) && class_exists($paymentMethodClass) && method_exists($paymentMethodClass, 'seedDefaultsForOrganization')) {
+                    $paymentMethodClass::seedDefaultsForOrganization($organizationId, $ownerUserId);
+                }
 
-            $expenseCategoryClass = config('accounting.models.expense_category', \App\Models\ExpenseCategory::class);
-            if (is_string($expenseCategoryClass) && class_exists($expenseCategoryClass) && method_exists($expenseCategoryClass, 'seedDefaultsForOrganization')) {
-                $expenseCategoryClass::seedDefaultsForOrganization($organizationId, $ownerUserId);
+                $expenseCategoryClass = config('accounting.models.expense_category', \App\Models\ExpenseCategory::class);
+                if (is_string($expenseCategoryClass) && class_exists($expenseCategoryClass) && method_exists($expenseCategoryClass, 'seedDefaultsForOrganization')) {
+                    $expenseCategoryClass::seedDefaultsForOrganization($organizationId, $ownerUserId);
+                }
             }
 
             $id = fn (string $key): ?int => $this->coa->accountIdByKey($branchId, $key);

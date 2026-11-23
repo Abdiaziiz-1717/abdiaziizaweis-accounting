@@ -11,6 +11,7 @@ use Abdiaziizaweis\Accounting\Context\MultiBranchContextResolver;
 use Abdiaziizaweis\Accounting\Context\MultiTenantContextResolver;
 use Abdiaziizaweis\Accounting\Context\MultiTenantMultiBranchContextResolver;
 use Abdiaziizaweis\Accounting\Context\SingleTenantContextResolver;
+use Abdiaziizaweis\Accounting\Database\Migration\TenancySchemaHelper;
 use Abdiaziizaweis\Accounting\Audit\NullAccountingAudit;
 use Abdiaziizaweis\Accounting\Contracts\AccountingAuditInterface;
 use Abdiaziizaweis\Accounting\Contracts\AccountingAuthInterface;
@@ -42,6 +43,11 @@ use Abdiaziizaweis\Accounting\Services\AccountingTransferService;
  */
 class AccountingServiceProvider extends ServiceProvider
 {
+    public static function isSingleTenant(): bool
+    {
+        return TenancySchemaHelper::isSingleTenant();
+    }
+
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/accounting.php', 'accounting');

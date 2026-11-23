@@ -4,6 +4,7 @@ namespace Abdiaziizaweis\Accounting\Services;
 
 use Abdiaziizaweis\Accounting\Contracts\AccountingAuditInterface;
 use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Database\Migration\TenancySchemaHelper;
 
 use Abdiaziizaweis\Accounting\Enums\AccountingJournalEntryStatus;
 use Abdiaziizaweis\Accounting\Enums\AccountingJournalSource;
@@ -65,7 +66,7 @@ class AccountingTransactionService
                 ->active()
                 ->where('type', $attributes['type']);
 
-            if ($branchId > 0) {
+            if (TenancySchemaHelper::usesBranchId() && $branchId > 0) {
                 $query->where('branch_id', $branchId);
             }
 
@@ -350,7 +351,7 @@ class AccountingTransactionService
                 $tx->description
             );
 
-            $entry = $this->journals->reverseOrReplace($existing, [
+            $entry = $this->journals->reverseOrReplace($existing, TenancySchemaHelper::filterTenantAttributes([
                 'organization_id' => $tx->organization_id,
                 'branch_id' => $tx->branch_id,
                 'owner_user_id' => $tx->owner_user_id,
@@ -358,7 +359,7 @@ class AccountingTransactionService
                 'description' => $tx->description,
                 'reference' => $tx->reference,
                 'source' => AccountingJournalSource::Mapping,
-            ], $lines);
+            ]), $lines);
 
             $tx->journal_entry_id = $entry->id;
             $tx->status = AccountingTransactionStatus::Mapped;
@@ -388,7 +389,7 @@ class AccountingTransactionService
 
             $existing = $this->activeJournalFor($tx);
 
-            $entry = $this->journals->reverseOrReplace($existing, [
+            $entry = $this->journals->reverseOrReplace($existing, TenancySchemaHelper::filterTenantAttributes([
                 'organization_id' => $tx->organization_id,
                 'branch_id' => $tx->branch_id,
                 'owner_user_id' => $tx->owner_user_id,
@@ -396,7 +397,7 @@ class AccountingTransactionService
                 'description' => $tx->description,
                 'reference' => $tx->reference,
                 'source' => AccountingJournalSource::Mapping,
-            ], $lines);
+            ]), $lines);
 
             $tx->journal_entry_id = $entry->id;
             $tx->status = AccountingTransactionStatus::Mapped;
@@ -453,7 +454,7 @@ class AccountingTransactionService
             $morphId = $transactionable->getDocumentId();
         }
 
-        return [
+        return TenancySchemaHelper::filterTenantAttributes([
             'organization_id' => $orgId,
             'branch_id' => $branchId > 0 ? $branchId : ($existing?->branch_id),
             'owner_user_id' => $attributes['owner_user_id'] ?? $existing?->owner_user_id,
@@ -466,7 +467,7 @@ class AccountingTransactionService
             'transaction_date' => $attributes['transaction_date'],
             'description' => $attributes['description'] ?? null,
             'reference' => $attributes['reference'] ?? null,
-        ];
+        ]);
     }
 
     /**

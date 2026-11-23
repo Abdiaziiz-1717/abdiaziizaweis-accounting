@@ -24,6 +24,36 @@ class BootstrapCommand extends Command
         AccountingMappingSeeder $mappingSeeder,
         AccountingMappingResolver $mappingResolver,
     ): int {
+        if (TenancySchemaHelper::isSingleTenant()) {
+            if ($this->option('organization-id') !== null || $this->option('branch-id') !== null) {
+                $this->warn('Single tenant mode ignores --organization-id and --branch-id.');
+            }
+
+            $this->info('Single tenant mode: seeding global chart of accounts');
+
+            $ownerUserId = app(AccountingAuthInterface::class)->user()?->id;
+            $beforeAccounts = $this->accountCount(0, 0);
+            $beforeMaps = $this->mappingCount(0, 0);
+
+            $mappingSeeder->seedDefaultsForBranch(
+                0,
+                0,
+                $ownerUserId ? (int) $ownerUserId : null,
+                (bool) $this->option('force'),
+            );
+
+            $mappingResolver->forgetBranch(0);
+
+            $afterAccounts = $this->accountCount(0, 0);
+            $afterMaps = $this->mappingCount(0, 0);
+
+            $this->newLine();
+            $this->line(sprintf('  Accounts: %d total (%d added this run)', $afterAccounts, max(0, $afterAccounts - $beforeAccounts)));
+            $this->line(sprintf('  Document mappings: %d total (%d added this run)', $afterMaps, max(0, $afterMaps - $beforeMaps)));
+
+            return self::SUCCESS;
+        }
+
         $context = app(AccountingContextInterface::class);
 
         $orgId = $this->option('organization-id') !== null

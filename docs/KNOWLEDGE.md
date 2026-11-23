@@ -107,6 +107,7 @@ Default config is **`single_tenant`**. Complex tenancy is opt-in.
 - `AccountingContextScope` applies **no** org/branch filters.
 - `BelongsToAccountingContext` does not stamp or validate org/branch.
 - Migrations omit `organization_id` / `branch_id` from all accounting tables (run `migrate` with `tenancy_mode` set before first migration).
+- In `single_tenant` mode, the package never queries the `organizations` or `branches` tables. It is safe to use this mode even if those tables do not exist in your database.
 
 Branch resolution in other modes often uses request header (see `MultiBranchContextResolver`). Multi-tenant reads `organization_id` from the authenticated user.
 

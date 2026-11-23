@@ -4,6 +4,7 @@ namespace Abdiaziizaweis\Accounting\Services;
 
 use Abdiaziizaweis\Accounting\Contracts\AccountingAuditInterface;
 use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Database\Migration\TenancySchemaHelper;
 
 use Abdiaziizaweis\Accounting\Enums\AccountingJournalEntryStatus;
 use Abdiaziizaweis\Accounting\Enums\AccountingJournalSource;
@@ -68,10 +69,14 @@ class AccountingJournalService
 
         return DB::transaction(function () use ($header, $lines) {
             $orgId = (int) ($header['organization_id'] ?? app(AccountingContextInterface::class)->getOrganizationId());
-            $branchId = (int) ($header['branch_id'] ?? app(AccountingContextInterface::class)->getBranchId());
+            $branchId = (int) ($header['branch_id'] ?? app(AccountingContextInterface::class)->getBranchId() ?? 0);
 
-            if (! $orgId || ! $branchId) {
-                throw new RuntimeException('Organization and branch are required to create a journal entry.');
+            if (TenancySchemaHelper::usesOrganizationId() && $orgId < 1) {
+                throw new RuntimeException('Organization is required to create a journal entry.');
+            }
+
+            if (TenancySchemaHelper::usesBranchId() && $branchId < 1) {
+                throw new RuntimeException('Branch is required to create a journal entry.');
             }
 
             $totalDebit = $this->sumSide($lines, 'debit');
@@ -80,19 +85,21 @@ class AccountingJournalService
                 $source = $source->value;
             }
 
-            $entry = AccountingJournalEntry::withoutGlobalScopes()->create([
-                'organization_id' => $orgId,
-                'branch_id' => $branchId,
-                'owner_user_id' => $header['owner_user_id'] ?? null,
-                'number' => $header['number'] ?? $this->nextNumber($orgId, $branchId),
-                'journal_date' => $header['journal_date'],
-                'description' => $header['description'] ?? null,
-                'reference' => $header['reference'] ?? null,
-                'source' => $source,
-                'amount' => $totalDebit,
-                'status' => AccountingJournalEntryStatus::Active,
-                'accounting_transfer_id' => $header['accounting_transfer_id'] ?? null,
-            ]);
+            $entry = AccountingJournalEntry::withoutGlobalScopes()->create(
+                TenancySchemaHelper::filterTenantAttributes([
+                    'organization_id' => $orgId,
+                    'branch_id' => $branchId,
+                    'owner_user_id' => $header['owner_user_id'] ?? null,
+                    'number' => $header['number'] ?? $this->nextNumber($orgId, $branchId),
+                    'journal_date' => $header['journal_date'],
+                    'description' => $header['description'] ?? null,
+                    'reference' => $header['reference'] ?? null,
+                    'source' => $source,
+                    'amount' => $totalDebit,
+                    'status' => AccountingJournalEntryStatus::Active,
+                    'accounting_transfer_id' => $header['accounting_transfer_id'] ?? null,
+                ])
+            );
 
             foreach ($lines as $line) {
                 AccountingJournalEntryLine::query()->create([
@@ -315,8 +322,8 @@ class AccountingJournalService
     {
         $prefix = 'JE-';
         $existing = AccountingJournalEntry::withoutGlobalScopes()
-            ->where('organization_id', $organizationId)
-            ->where('branch_id', $branchId)
+            ->when(TenancySchemaHelper::usesOrganizationId(), fn ($q) => $q->where('organization_id', $organizationId))
+            ->when(TenancySchemaHelper::usesBranchId(), fn ($q) => $q->where('branch_id', $branchId))
             ->where('number', 'like', $prefix.'%')
             ->lockForUpdate()
             ->pluck('number');

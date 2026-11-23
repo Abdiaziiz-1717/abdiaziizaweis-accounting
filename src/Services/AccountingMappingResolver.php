@@ -17,9 +17,13 @@ class AccountingMappingResolver
 
     public function forgetBranch(?int $branchId = null): void
     {
-        $branchId = $branchId ?? app(AccountingContextInterface::class)->getBranchId();
-        if (! $branchId) {
-            return;
+        if (TenancySchemaHelper::isSingleTenant()) {
+            $branchId = 0;
+        } else {
+            $branchId = $branchId ?? app(AccountingContextInterface::class)->getBranchId();
+            if (! $branchId) {
+                return;
+            }
         }
 
         $key = $this->versionKey($branchId);
