@@ -62,10 +62,22 @@ Host apps integrate by implementing `AccountingDocumentInterface` and registerin
 2. `php artisan accounting:install` **or** publish config + `migrate` + `accounting:bootstrap`
 3. Register `DocumentRegistry::register(...)` entries in `AppServiceProvider::boot()`
 4. Re-run `php artisan accounting:bootstrap [--force]` after new registry entries
-5. Assign API permissions; ensure Sanctum (or adjust `accounting.middleware`)
-6. Optional: override `AccountingContextInterface` / `AccountingAuthInterface` in app `AppServiceProvider::register()`
+5. Set `accounting.middleware` in config to your app’s auth middleware (`auth`, `auth:sanctum`, `auth:api`, `auth:jwt`, or custom). The package is **auth-system agnostic** — no Sanctum or Passport dependency.
+6. Assign accounting permission names via Gates, `$user->can()`, Spatie (optional), or a custom `AccountingAuthInterface`
+7. Optional: override `AccountingContextInterface` / `AccountingAuthInterface` in app `AppServiceProvider::register()`
 
 Published tags: `accounting-config`, `accounting-migrations`.
+
+**Default middleware stack**
+
+```php
+'middleware' => [
+    'auth',
+    \Abdiaziizaweis\Accounting\Http\Middleware\ResolveAccountingContext::class,
+],
+```
+
+Include `accounting.context` (alias for `ResolveAccountingContext`) whenever org/branch resolution is required for your tenancy mode.
 
 ---
 
@@ -327,7 +339,7 @@ All GET under `/reports/...` with `view accounting reports`.
 'currency' => string,
 'fy_start' => int 1-12,
 'route_prefix' => string,
-'middleware' => array<string>,
+'middleware' => array<string>, // default ['auth', ResolveAccountingContext::class]; use auth:sanctum, auth:api, auth:jwt, or custom as your app requires
 'features' => ['tax_splitting' => bool, 'discount_splitting' => bool],
 'auth' => ['guard' => class-string],
 'models' => ['user', 'organization', 'branch', 'payment_method', 'expense_category'] => class-string,

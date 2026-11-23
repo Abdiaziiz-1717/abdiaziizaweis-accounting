@@ -5,6 +5,15 @@ return [
     'currency' => '{{CURRENCY}}',
     'fy_start' => {{FY_START}},
     'route_prefix' => '{{ROUTE_PREFIX}}',
+    /*
+    | Set to whatever auth middleware your app uses.
+    | Examples:
+    | 'auth' — Laravel session auth (default)
+    | 'auth:sanctum' — Laravel Sanctum
+    | 'auth:api' — Laravel Passport
+    | 'auth:jwt' — JWT auth
+    | Any custom middleware your app registers
+    */
     'middleware' => [{{MIDDLEWARE}}],
     'features' => [
         'tax_splitting' => {{TAX_SPLITTING}},

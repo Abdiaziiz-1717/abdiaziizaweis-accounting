@@ -21,8 +21,17 @@ return [
 
     'route_prefix' => 'api/v1/accounting',
 
+    /*
+    | Set to whatever auth middleware your app uses.
+    | Examples:
+    | 'auth' — Laravel session auth (default)
+    | 'auth:sanctum' — Laravel Sanctum
+    | 'auth:api' — Laravel Passport
+    | 'auth:jwt' — JWT auth
+    | Any custom middleware your app registers
+    */
     'middleware' => [
-        'auth:sanctum',
+        'auth',
         ResolveAccountingContext::class,
     ],
 

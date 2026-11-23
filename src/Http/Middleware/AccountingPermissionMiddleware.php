@@ -14,11 +14,7 @@ class AccountingPermissionMiddleware
         if (! app(AccountingAuthInterface::class)->can($permission)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Access denied',
-                'errors' => [
-                    'permission' => ['Access denied'],
-                ],
-                'status_code' => 403,
+                'message' => 'Unauthorized',
             ], 403);
         }
 

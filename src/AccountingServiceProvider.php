@@ -106,7 +106,7 @@ class AccountingServiceProvider extends ServiceProvider
         }
 
         $prefix = (string) config('accounting.route_prefix', 'api/v1/accounting');
-        $middleware = config('accounting.middleware', ['auth:sanctum']);
+        $middleware = config('accounting.middleware', ['auth']);
 
         Route::middleware($middleware)
             ->prefix($prefix)
@@ -124,9 +124,25 @@ class AccountingServiceProvider extends ServiceProvider
     {
         $router = $this->app['router'];
 
-        if (! $this->middlewareAliasExists($router, 'permission')) {
-            $router->aliasMiddleware('permission', AccountingPermissionMiddleware::class);
+        if ($this->hostDefinesPermissionMiddleware($router)) {
+            return;
         }
+
+        $router->aliasMiddleware('permission', AccountingPermissionMiddleware::class);
+    }
+
+    /**
+     * Do not register the package permission middleware when the host already defined one.
+     *
+     * @param  \Illuminate\Contracts\Routing\Registrar|\Illuminate\Routing\Router  $router
+     */
+    protected function hostDefinesPermissionMiddleware(object $router): bool
+    {
+        if (method_exists($router, 'hasMiddlewareGroup') && $router->hasMiddlewareGroup('permission')) {
+            return true;
+        }
+
+        return $this->middlewareAliasExists($router, 'permission');
     }
 
     /**

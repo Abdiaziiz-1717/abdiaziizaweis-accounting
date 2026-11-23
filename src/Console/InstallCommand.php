@@ -108,6 +108,10 @@ class InstallCommand extends Command
         $this->line(');');
         $this->newLine();
         $this->line('Then run: php artisan accounting:bootstrap');
+        $this->newLine();
+        $this->line(
+            'Set accounting.middleware in config/accounting.php to match your app\'s auth middleware (auth, auth:sanctum, auth:api, etc.).'
+        );
 
         return self::SUCCESS;
     }
@@ -142,7 +146,7 @@ class InstallCommand extends Command
 
         $routePrefix = (string) $this->ask('Route prefix', 'api/v1/accounting');
 
-        $middlewareInput = (string) $this->ask('Middleware (comma-separated)', 'auth:sanctum,accounting.context');
+        $middlewareInput = (string) $this->ask('Middleware (comma-separated)', 'auth,accounting.context');
         $middlewareList = array_values(array_filter(array_map('trim', explode(',', $middlewareInput))));
 
         $organizationId = null;
@@ -182,7 +186,7 @@ class InstallCommand extends Command
         string $routePrefix,
         array $middlewareList,
     ): string {
-        $middlewareList = $middlewareList !== [] ? $middlewareList : ['auth:sanctum', 'accounting.context'];
+        $middlewareList = $middlewareList !== [] ? $middlewareList : ['auth', 'accounting.context'];
         $middlewarePhp = implode(', ', array_map(
             fn (string $m) => "'".addslashes($m)."'",
             $middlewareList

@@ -4,7 +4,7 @@ This walkthrough shows how a **car sales / service / parts** Laravel app integra
 
 We use module **`inventory`** below because `AccountingDocumentMapping` stores `module` as the `AccountingModule` enum and the upsert API validates that enum. For a first-class `automotive` module name, add `case Automotive = 'automotive';` to `Abdiaziizaweis\Accounting\Enums\AccountingModule` (or fork the package) and replace `inventory` with `automotive` everywhere in this file.
 
-**Assumptions:** `multi_tenant_multi_branch`, Sanctum auth, `Organization` and `Branch` on the user, branch header `X-Branch-Id` (or your resolver equivalent).
+**Assumptions:** `multi_tenant_multi_branch`, authenticated API (`auth:sanctum` or your `accounting.middleware` stack), `Organization` and `Branch` on the user, branch header `X-Branch-Id` (or your resolver equivalent).
 
 ---
 
@@ -278,7 +278,7 @@ $this->app->singleton(AccountingDocumentBridge::class, DealershipAccountingBridg
 
 ## 3. End-to-end: vehicle sale
 
-**Context:** Authenticated user with `organization_id`, request includes `X-Branch-Id: 1`, middleware `auth:sanctum` + `accounting.context`.
+**Context:** Authenticated user with `organization_id`, request includes `X-Branch-Id: 1`, middleware per `config('accounting.middleware')` (e.g. `auth` + `accounting.context`).
 
 ```php
 // Controller excerpt

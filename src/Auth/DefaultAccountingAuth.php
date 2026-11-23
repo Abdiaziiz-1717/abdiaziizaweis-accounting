@@ -11,20 +11,8 @@ class DefaultAccountingAuth implements AccountingAuthInterface
 {
     public function can(string $permission): bool
     {
-        $user = auth()->user();
-        if ($user === null) {
-            return false;
-        }
-
-        if (Gate::has($permission)) {
-            return Gate::forUser($user)->check($permission);
-        }
-
-        if (method_exists($user, 'can')) {
-            return $user->can($permission);
-        }
-
-        return false;
+        return Gate::allows($permission)
+            || (auth()->user()?->can($permission) ?? false);
     }
 
     public function user(): Authenticatable

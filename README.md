@@ -32,7 +32,7 @@ Everything you need is documented there.
 
 # abdiaziizaweis/accounting
 
-Reusable **double-entry accounting** for Laravel apps: chart of accounts (CoA), operational **transactions** bridged from your invoices/payments, automatic **journal entries** via mappings, inter-account **transfers**, and six **financial reports** over a Sanctum-protected JSON API.
+Reusable **double-entry accounting** for Laravel apps: chart of accounts (CoA), operational **transactions** bridged from your invoices/payments, automatic **journal entries** via mappings, inter-account **transfers**, and six **financial reports** over a JSON API protected by **your** auth middleware.
 
 **Namespace:** `Abdiaziizaweis\Accounting`  
 **Composer:** `abdiaziizaweis/accounting`
@@ -45,9 +45,36 @@ Reusable **double-entry accounting** for Laravel apps: chart of accounts (CoA), 
 |-------------|---------|
 | PHP | **8.2+** (`^8.2`) |
 | Laravel | **11, 12, or 13** (`^11.0`, `^12.0`, or `^13.0`) |
-| Auth (typical) | Laravel Sanctum (`auth:sanctum` on API routes) |
+| Authentication | **Your choice** — set `accounting.middleware` (default `auth`) |
 
 Host apps need `users`, and—depending on tenancy—`organizations`, `branches`, `payment_methods`, and `expense_categories` tables (names configurable).
+
+---
+
+## Authentication
+
+The package does **not** require Sanctum, Passport, or any specific auth package. Routes load with the middleware stack in `config('accounting.middleware')`.
+
+Default:
+
+```php
+'middleware' => [
+    'auth',
+    \Abdiaziizaweis\Accounting\Http\Middleware\ResolveAccountingContext::class,
+],
+```
+
+Pick the guard/middleware your app already uses:
+
+| Stack | Example `accounting.middleware` entry |
+|-------|--------------------------------------|
+| Session / web | `auth` or `auth:web` |
+| Laravel Sanctum | `auth:sanctum` |
+| Laravel Passport | `auth:api` |
+| JWT (tymon/jwt-auth, etc.) | `auth:jwt` or your custom middleware class |
+| Custom | Any middleware alias registered in the host app |
+
+**Authorization:** Route abilities use the `permission:…` middleware alias. The package registers `AccountingPermissionMiddleware` only if the host has not already defined a `permission` alias. Checks go through `AccountingAuthInterface::can()` (`DefaultAccountingAuth` uses Laravel `Gate` and the authenticated user’s `can()` — compatible with Gates, Spatie Permission when installed, or a custom `AccountingAuthInterface` binding).
 
 ---
 
@@ -103,7 +130,7 @@ Routes use middleware alias `permission:…`. If your app has no `permission` mi
 - `view accounting reports`
 - `manage accounting settings`
 
-Wire these into your RBAC (e.g. Spatie Permission) before calling protected endpoints.
+Wire these into your RBAC (Gates, policies, Spatie Permission if installed, or a custom `AccountingAuthInterface`) before calling protected endpoints.
 
 ---
 
@@ -311,7 +338,7 @@ HTTP equivalent: **POST** `{prefix}/bootstrap` with optional `force=1` (permissi
 | `currency` | `USD` | Display/default currency code |
 | `fy_start` | `1` | First month of fiscal year (1–12) |
 | `route_prefix` | `api/v1/accounting` | API URL prefix |
-| `middleware` | `auth:sanctum`, `ResolveAccountingContext` | Route middleware stack |
+| `middleware` | `auth`, `ResolveAccountingContext` | Route middleware stack (use `auth:sanctum`, `auth:api`, etc. as needed) |
 | `features.tax_splitting` | `true` | Bootstrap wires tax accounts into branch settings when CoA seeds |
 | `features.discount_splitting` | `true` | Bootstrap wires discount accounts into branch settings |
 | `auth.guard` | `DefaultAccountingAuth::class` | `AccountingAuthInterface` implementation |
@@ -431,8 +458,8 @@ Purchase split: DR inventory (net); DR tax receivable; CR purchase discounts; CR
 |---------|--------------|-----|
 | Transactions stay `not_mapped` | No mapping row or disabled mapping | Register `DocumentRegistry` + bootstrap; upsert mappings; check `is_enabled` |
 | Bootstrap “Organization/Branch required” | CLI without context | Pass `--organization-id` / `--branch-id` |
-| 401/422 on API | Missing Sanctum or org/branch | Auth user; set branch header; check `tenancy_mode` |
-| 403 on endpoints | Missing permission | Assign Spatie (or custom) permissions listed above |
+| 401/422 on API | Auth middleware or org/branch missing | Match `accounting.middleware` to your guard; set branch header; check `tenancy_mode` |
+| 403 on endpoints | Missing permission | Define Gates / `$user->can()` / custom `AccountingAuthInterface` for permission names above |
 | Delete host model fails | Strict void error | Resolve linked JE issues; void tx manually first |
 | Record silently does nothing | Bridge swallows errors | Check `storage/logs` for `AccountingDocumentBridge failed` |
 | Reports don’t match | Voided JEs or wrong dates | Use `include_voided` for audit; confirm `journal_date` range |
