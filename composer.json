@@ -1,4 +1,5 @@
 {
+    "$schema": "https://getcomposer.org/schema.json",
     "name": "abdiaziizaweis/accounting",
     "description": "Reusable double-entry accounting module for Laravel applications",
     "type": "library",
@@ -6,7 +7,7 @@
     "authors": [
         {
             "name": "Abdiaziiz Aweis",
-            "email": "your@email.com"
+            "email": "cabdicaziiz1717@gmail.com"
         }
     ],
     "require": {
