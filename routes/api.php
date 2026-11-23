@@ -7,6 +7,7 @@ use Abdiaziizaweis\Accounting\Http\Controllers\AccountingDocumentMappingControll
 use Abdiaziizaweis\Accounting\Http\Controllers\AccountingExpenseCategoryMappingController;
 use Abdiaziizaweis\Accounting\Http\Controllers\AccountingJournalEntryController;
 use Abdiaziizaweis\Accounting\Http\Controllers\AccountingPaymentMethodMappingController;
+use Abdiaziizaweis\Accounting\Http\Controllers\AccountingPaymentMethodMappingSideController;
 use Abdiaziizaweis\Accounting\Http\Controllers\AccountingReportController;
 use Abdiaziizaweis\Accounting\Http\Controllers\CustomReportController;
 use Abdiaziizaweis\Accounting\Http\Controllers\AccountingSettingsController;
@@ -79,6 +80,17 @@ Route::get('/payment-method-mappings', [AccountingPaymentMethodMappingController
     ->middleware('permission:view accounting mappings');
 Route::post('/payment-method-mappings/upsert', [AccountingPaymentMethodMappingController::class, 'upsert'])
     ->middleware('permission:edit accounting mappings');
+
+Route::prefix('mappings/payment-methods')->group(function () {
+    Route::get('{id}/sides', [AccountingPaymentMethodMappingSideController::class, 'index'])
+        ->middleware('permission:view accounting mappings');
+    Route::post('{id}/sides', [AccountingPaymentMethodMappingSideController::class, 'store'])
+        ->middleware('permission:edit accounting mappings');
+    Route::put('{id}/sides/{module}', [AccountingPaymentMethodMappingSideController::class, 'update'])
+        ->middleware('permission:edit accounting mappings');
+    Route::delete('{id}/sides/{module}', [AccountingPaymentMethodMappingSideController::class, 'destroy'])
+        ->middleware('permission:edit accounting mappings');
+});
 
 Route::get('/expense-category-mappings', [AccountingExpenseCategoryMappingController::class, 'index'])
     ->middleware('permission:view accounting mappings');

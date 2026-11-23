@@ -178,7 +178,10 @@ Optional: `getPaymentMethodId()`, `getExpenseCategoryId()`, `getOwnerUserId()`.
 `id`, `organization_id?`, `branch_id?`, `module`, `document_type`, `debit_account_id`, `credit_account_id`, `is_enabled`, timestamps — unique on `(branch|org, module, document_type)`
 
 ### `accounting_payment_method_mappings`
-`id`, `organization_id?`, `branch_id?`, `payment_method_id`, `sales_debit_account_id`, `sales_credit_account_id`, `expense_debit_account_id?`, `expense_credit_account_id?`, `is_enabled`, timestamps
+`id`, `organization_id?`, `branch_id?`, `payment_method_id`, `sales_debit_account_id?`, `sales_credit_account_id?`, `purchase_debit_account_id?`, `purchase_credit_account_id?`, `is_enabled`, timestamps — legacy columns kept nullable for backward compatibility.
+
+### `accounting_payment_method_mapping_sides`
+`id`, `organization_id?`, `branch_id?`, `payment_method_mapping_id`, `module` (e.g. `sales`, `purchase`, `expenses`, any slug), `debit_account_id?`, `credit_account_id?`, `is_enabled`, timestamps — unique on `(payment_method_mapping_id, module)`.
 
 ### `accounting_expense_category_mappings`
 `id`, `organization_id?`, `branch_id?`, `expense_category_id`, `debit_account_id`, `credit_account_id`, `is_enabled`, timestamps
@@ -218,11 +221,45 @@ Active scope excludes `voided` on default API listings.
 
 **Document:** Resolved by `(organization_id, branch_id, module, document_type)` via `AccountingMappingResolver`.
 
-**Payment method:** Overrides debit/credit for payment transactions when `payment_method_id` hint present; `payment_side` can be `sales` or purchase flow.
+**Payment method:** One row per `payment_method_id` per branch. **Module sides** live in `accounting_payment_method_mapping_sides` — each side is a `(module → debit/credit)` pair (`sales`, `purchase`, `expenses`, `payroll`, or any custom module string).
 
-**Expense category:** Used when `expense_category_id` on transaction hints.
+Resolution order for payment-method maps:
 
-Bootstrap seeds from `DocumentRegistry` + default PM/expense rows when host seeders exist.
+1. Enabled side row matching `payment_side` (or inferred document `module` when `payment_side` is `sales`/empty).
+2. Legacy columns on `accounting_payment_method_mappings` for `sales` and `purchase` only (backward compatible).
+
+`tryAutoMap` / `AccountingMappingResolver::resolvePaymentMethod($paymentMethodId, $module)` pass the module context.
+
+**API — payment method sides** (permission: view/edit accounting mappings):
+
+| Method | Path | Body |
+|--------|------|------|
+| GET | `{prefix}/mappings/payment-methods/{id}/sides` | — |
+| POST | `{prefix}/mappings/payment-methods/{id}/sides` | `module`, `debit_account_id`, `credit_account_id`, `is_enabled?` |
+| PUT | `{prefix}/mappings/payment-methods/{id}/sides/{module}` | same fields |
+| DELETE | `{prefix}/mappings/payment-methods/{id}/sides/{module}` | — |
+
+**Example — expenses module side**
+
+```http
+POST /api/v1/accounting/mappings/payment-methods/3/sides
+{
+  "module": "expenses",
+  "debit_account_id": 15,
+  "credit_account_id": 8,
+  "is_enabled": true
+}
+```
+
+When recording an expense payment with `payment_method_id`, pass `payment_side=expenses` (or rely on document module `expenses`).
+
+Legacy **upsert** `POST /payment-method-mappings/upsert` still accepts `sales_*` and `purchase_*` columns; it mirrors `sales` and `purchase` side rows automatically.
+
+`GET /registry/documents` includes `has_payment_method_mapping_side` per document type (true when the branch has at least one enabled payment-method side for that document’s `module`).
+
+**Expense category:** Used when `expense_category_id` on transaction hints (unchanged).
+
+Bootstrap seeds from `DocumentRegistry` + default PM/expense rows when host seeders exist (creates `sales` and `purchase` sides).
 
 Cache: `AccountingMappingResolver::forgetBranch($branchId)` after upsert/bootstrap.
 

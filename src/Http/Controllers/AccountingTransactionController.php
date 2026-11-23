@@ -106,7 +106,7 @@ class AccountingTransactionController extends BaseController
             'document_type' => 'nullable|string',
             'payment_method_id' => 'nullable|integer',
             'expense_category_id' => 'nullable|integer',
-            'payment_side' => 'nullable|in:sales',
+            'payment_side' => ['nullable', 'string', 'max:64', 'regex:/^[a-z][a-z0-9_-]*$/'],
             'debit_account_id' => 'nullable|integer',
             'credit_account_id' => 'nullable|integer',
         ]);

@@ -6,6 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
 use Abdiaziizaweis\Accounting\Models\AccountingDocumentMapping;
+use Abdiaziizaweis\Accounting\Models\AccountingPaymentMethodMappingSide;
 use Abdiaziizaweis\Accounting\Registry\DocumentRegistry;
 
 class DocumentRegistryController extends Controller
@@ -15,10 +16,11 @@ class DocumentRegistryController extends Controller
         /** @var AccountingContextInterface $context */
         $context = app(AccountingContextInterface::class);
 
-        $mappings = $this->branchMappingsKeyed(
-            $context->getOrganizationId(),
-            $context->getBranchId(),
-        );
+        $organizationId = $context->getOrganizationId();
+        $branchId = $context->getBranchId();
+
+        $mappings = $this->branchMappingsKeyed($organizationId, $branchId);
+        $paymentMethodModules = $this->paymentMethodModulesWithSides($organizationId, $branchId);
 
         $modules = [];
 
@@ -33,6 +35,7 @@ class DocumentRegistryController extends Controller
                     'debit_account_id' => $mapping?->debit_account_id,
                     'credit_account_id' => $mapping?->credit_account_id,
                     'is_enabled' => $mapping !== null ? (bool) $mapping->is_enabled : false,
+                    'has_payment_method_mapping_side' => isset($paymentMethodModules[strtolower($module)]),
                 ]);
             }
 
@@ -78,5 +81,31 @@ class DocumentRegistryController extends Controller
     protected static function mappingKey(string $module, string $documentType): string
     {
         return strtolower($module).':'.strtolower($documentType);
+    }
+
+    /**
+     * @return array<string, true>
+     */
+    protected function paymentMethodModulesWithSides(int $organizationId, ?int $branchId): array
+    {
+        $query = AccountingPaymentMethodMappingSide::query()
+            ->where('is_enabled', true)
+            ->whereNotNull('debit_account_id')
+            ->whereNotNull('credit_account_id');
+
+        if ($organizationId) {
+            $query->where('organization_id', $organizationId);
+        }
+        if ($branchId !== null) {
+            $query->where('branch_id', $branchId);
+        }
+
+        $modules = [];
+
+        foreach ($query->distinct()->pluck('module') as $module) {
+            $modules[strtolower((string) $module)] = true;
+        }
+
+        return $modules;
     }
 }

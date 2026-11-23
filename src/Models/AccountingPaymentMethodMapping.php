@@ -4,6 +4,7 @@ namespace Abdiaziizaweis\Accounting\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Abdiaziizaweis\Accounting\Models\Concerns\BelongsToAccountingContext;
 
 class AccountingPaymentMethodMapping extends Model
@@ -54,5 +55,19 @@ class AccountingPaymentMethodMapping extends Model
     public function purchaseCreditAccount(): BelongsTo
     {
         return $this->belongsTo(AccountingAccount::class, 'purchase_credit_account_id');
+    }
+
+    public function sides(): HasMany
+    {
+        return $this->hasMany(AccountingPaymentMethodMappingSide::class, 'payment_method_mapping_id');
+    }
+
+    public function sideForModule(string $module): ?AccountingPaymentMethodMappingSide
+    {
+        if ($this->relationLoaded('sides')) {
+            return $this->sides->firstWhere('module', $module);
+        }
+
+        return $this->sides()->where('module', $module)->first();
     }
 }

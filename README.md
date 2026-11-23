@@ -384,7 +384,7 @@ Only journal entries with `status = active` (or `null` legacy) affect reports.
 Three mapping tables (branch/org scoped):
 
 1. **Document** — `(module, document_type)` → `debit_account_id`, `credit_account_id`
-2. **Payment method** — `payment_method_id` → sales (+ optional purchase) debit/credit pairs
+2. **Payment method** — `payment_method_id` → debit/credit per **module side** (`sales`, `purchase`, `expenses`, or any custom module)
 3. **Expense category** — `expense_category_id` → debit/credit
 
 API:

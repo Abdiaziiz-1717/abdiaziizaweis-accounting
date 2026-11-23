@@ -8,6 +8,7 @@ use Abdiaziizaweis\Accounting\Enums\AccountingModule;
 use Abdiaziizaweis\Accounting\Models\AccountingDocumentMapping;
 use Abdiaziizaweis\Accounting\Models\AccountingExpenseCategoryMapping;
 use Abdiaziizaweis\Accounting\Models\AccountingPaymentMethodMapping;
+use Abdiaziizaweis\Accounting\Models\AccountingPaymentMethodMappingSide;
 use Illuminate\Support\Facades\Cache;
 
 class AccountingMappingResolver
@@ -80,15 +81,14 @@ class AccountingMappingResolver
     }
 
     /**
-     * `sales` = customer money-in (hotel/restaurant/event payments, deposits).
-     * `purchase` = money-out to suppliers (purchase payments only). Company
-     * expenses use expense-category maps and never reach this resolver.
+     * Resolve debit/credit for a payment method in a given module context (`sales`, `purchase`, `expenses`, custom, …).
+     * Reads `accounting_payment_method_mapping_sides` first; falls back to legacy sales/purchase columns.
      *
      * @return array{debit_account_id: int, credit_account_id: int, mapping: AccountingPaymentMethodMapping}|null
      */
     public function resolvePaymentMethod(
         int $paymentMethodId,
-        string $side = 'sales',
+        string $module = 'sales',
         ?int $branchId = null
     ): ?array {
         $branchId = $branchId ?? app(AccountingContextInterface::class)->getBranchId();
@@ -96,13 +96,10 @@ class AccountingMappingResolver
             return null;
         }
 
-        if (! in_array($side, ['sales', 'purchase'], true)) {
-            return null;
-        }
+        $module = $this->normalizePaymentMethodModule($module);
+        $cacheKey = $this->entryKey($branchId, 'pm', (string) $paymentMethodId, $module);
 
-        $cacheKey = $this->entryKey($branchId, 'pm', (string) $paymentMethodId, $side);
-
-        $payload = Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, function () use ($branchId, $paymentMethodId, $side) {
+        $payload = Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, function () use ($branchId, $paymentMethodId, $module) {
             $mapping = AccountingPaymentMethodMapping::withoutGlobalScopes()
                 ->where('branch_id', $branchId)
                 ->where('payment_method_id', $paymentMethodId)
@@ -113,23 +110,21 @@ class AccountingMappingResolver
                 return null;
             }
 
-            if ($side === 'purchase') {
-                if (! $mapping->purchase_debit_account_id || ! $mapping->purchase_credit_account_id) {
-                    return null;
-                }
+            $side = AccountingPaymentMethodMappingSide::withoutGlobalScopes()
+                ->where('payment_method_mapping_id', $mapping->id)
+                ->where('module', $module)
+                ->where('is_enabled', true)
+                ->first();
 
+            if ($side && $side->debit_account_id && $side->credit_account_id) {
                 return [
-                    'debit_account_id' => (int) $mapping->purchase_debit_account_id,
-                    'credit_account_id' => (int) $mapping->purchase_credit_account_id,
+                    'debit_account_id' => (int) $side->debit_account_id,
+                    'credit_account_id' => (int) $side->credit_account_id,
                     'mapping_id' => (int) $mapping->id,
                 ];
             }
 
-            return [
-                'debit_account_id' => (int) $mapping->sales_debit_account_id,
-                'credit_account_id' => (int) $mapping->sales_credit_account_id,
-                'mapping_id' => (int) $mapping->id,
-            ];
+            return $this->resolveLegacyPaymentMethodColumns($mapping, $module);
         });
 
         if (! $payload) {
@@ -167,7 +162,7 @@ class AccountingMappingResolver
         ?string $documentType,
         ?int $paymentMethodId,
         ?int $expenseCategoryId,
-        string $paymentSide = 'sales',
+        string $paymentModule = 'sales',
     ): ?array {
         // 1. Expense category map takes precedence for expense-type transactions.
         if ($expenseCategoryId) {
@@ -177,9 +172,21 @@ class AccountingMappingResolver
             }
         }
 
-        // 2. Payment method map.
+        // 2. Payment method map (`payment_side` hint, else document module, else sales).
         if ($paymentMethodId) {
-            $result = $this->resolvePaymentMethod($paymentMethodId, $paymentSide, $branchId);
+            $pmModule = $paymentModule;
+            if (in_array($pmModule, ['', 'sales'], true) && $module !== null) {
+                $pmModule = $module instanceof AccountingModule ? $module->value : (string) $module;
+            }
+            if ($pmModule === '') {
+                $pmModule = 'sales';
+            }
+
+            $result = $this->resolvePaymentMethod(
+                $paymentMethodId,
+                $this->normalizePaymentMethodModule($pmModule),
+                $branchId
+            );
             if ($result) {
                 return ['debit_account_id' => $result['debit_account_id'], 'credit_account_id' => $result['credit_account_id']];
             }
@@ -239,6 +246,50 @@ class AccountingMappingResolver
             'credit_account_id' => (int) $payload['credit_account_id'],
             'mapping' => $mapping,
         ];
+    }
+
+    protected function normalizePaymentMethodModule(string $module): string
+    {
+        $module = strtolower(trim($module));
+
+        return match ($module) {
+            'purchases' => 'purchase',
+            default => $module,
+        };
+    }
+
+    /**
+     * @return array{debit_account_id: int, credit_account_id: int, mapping_id: int}|null
+     */
+    protected function resolveLegacyPaymentMethodColumns(
+        AccountingPaymentMethodMapping $mapping,
+        string $module
+    ): ?array {
+        if ($module === 'purchase') {
+            if (! $mapping->purchase_debit_account_id || ! $mapping->purchase_credit_account_id) {
+                return null;
+            }
+
+            return [
+                'debit_account_id' => (int) $mapping->purchase_debit_account_id,
+                'credit_account_id' => (int) $mapping->purchase_credit_account_id,
+                'mapping_id' => (int) $mapping->id,
+            ];
+        }
+
+        if ($module === 'sales') {
+            if (! $mapping->sales_debit_account_id || ! $mapping->sales_credit_account_id) {
+                return null;
+            }
+
+            return [
+                'debit_account_id' => (int) $mapping->sales_debit_account_id,
+                'credit_account_id' => (int) $mapping->sales_credit_account_id,
+                'mapping_id' => (int) $mapping->id,
+            ];
+        }
+
+        return null;
     }
 
     protected function versionKey(int $branchId): string

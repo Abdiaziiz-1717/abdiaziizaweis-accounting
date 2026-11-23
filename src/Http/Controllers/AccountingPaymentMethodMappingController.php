@@ -6,6 +6,7 @@ use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
 
 use Abdiaziizaweis\Accounting\Http\Controllers\BaseController;
 use Abdiaziizaweis\Accounting\Models\AccountingPaymentMethodMapping;
+use Abdiaziizaweis\Accounting\Models\AccountingPaymentMethodMappingSide;
 use Abdiaziizaweis\Accounting\Services\AccountingMappingResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +28,8 @@ class AccountingPaymentMethodMappingController extends BaseController
         'salesCreditAccount:id,name,number',
         'purchaseDebitAccount:id,name,number',
         'purchaseCreditAccount:id,name,number',
+        'sides.debitAccount:id,name,number',
+        'sides.creditAccount:id,name,number',
     ];
 
     public function upsert(Request $request)
@@ -67,7 +70,7 @@ class AccountingPaymentMethodMappingController extends BaseController
         $rows = DB::transaction(function () use ($validated, $orgId, $branchId) {
             $saved = [];
             foreach ($validated['mappings'] as $row) {
-                $saved[] = AccountingPaymentMethodMapping::query()->updateOrCreate(
+                $mapping = AccountingPaymentMethodMapping::query()->updateOrCreate(
                     [
                         'branch_id' => $branchId,
                         'payment_method_id' => $row['payment_method_id'],
@@ -83,6 +86,38 @@ class AccountingPaymentMethodMappingController extends BaseController
                         'is_enabled' => $row['is_enabled'] ?? true,
                     ]
                 );
+
+                AccountingPaymentMethodMappingSide::query()->updateOrCreate(
+                    [
+                        'payment_method_mapping_id' => $mapping->id,
+                        'module' => 'sales',
+                    ],
+                    [
+                        'organization_id' => $orgId,
+                        'branch_id' => $branchId,
+                        'debit_account_id' => $row['sales_debit_account_id'],
+                        'credit_account_id' => $row['sales_credit_account_id'],
+                        'is_enabled' => $row['is_enabled'] ?? true,
+                    ]
+                );
+
+                if (! empty($row['purchase_debit_account_id']) && ! empty($row['purchase_credit_account_id'])) {
+                    AccountingPaymentMethodMappingSide::query()->updateOrCreate(
+                        [
+                            'payment_method_mapping_id' => $mapping->id,
+                            'module' => 'purchase',
+                        ],
+                        [
+                            'organization_id' => $orgId,
+                            'branch_id' => $branchId,
+                            'debit_account_id' => $row['purchase_debit_account_id'],
+                            'credit_account_id' => $row['purchase_credit_account_id'],
+                            'is_enabled' => $row['is_enabled'] ?? true,
+                        ]
+                    );
+                }
+
+                $saved[] = $mapping;
             }
 
             return $saved;

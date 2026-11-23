@@ -455,7 +455,35 @@ After bootstrap, map each `PaymentMethod` row:
 POST /api/v1/accounting/payment-method-mappings/upsert
 ```
 
-Body includes `payment_method_id`, `sales_debit_account_id` (bank/cash), `sales_credit_account_id` (AR), `is_enabled: true`.
+Body includes `payment_method_id`, `sales_debit_account_id` (bank/cash), `sales_credit_account_id` (AR), optional `purchase_*` pair, `is_enabled: true`. Upsert mirrors `sales` and `purchase` **module sides** automatically.
+
+### Module sides (sales, purchase, expenses)
+
+For payroll, expenses, or other flows, add sides per payment method mapping id (from GET `/payment-method-mappings`):
+
+```http
+POST /api/v1/accounting/mappings/payment-methods/2/sides
+```
+
+```json
+{
+  "module": "expenses",
+  "debit_account_id": 210,
+  "credit_account_id": 105,
+  "is_enabled": true
+}
+```
+
+Repeat for `sales` and `purchase` if you need explicit pairs beyond the legacy upsert columns:
+
+```http
+PUT /api/v1/accounting/mappings/payment-methods/2/sides/sales
+PUT /api/v1/accounting/mappings/payment-methods/2/sides/purchase
+```
+
+When posting a vendor parts payment (`purchase` flow), the bridge sets `payment_side` to `purchase`. For a petty-cash expense paid by card, pass `payment_side=expenses` on map/record hints so the resolver uses the expenses side (DR expense clearing / CR card).
+
+`GET /registry/documents` returns `has_payment_method_mapping_side` per document type so your mapping UI can show when payment-method coverage exists for that module.
 
 ---
 

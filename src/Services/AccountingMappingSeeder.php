@@ -6,6 +6,7 @@ use Abdiaziizaweis\Accounting\Enums\AccountingModule;
 use Abdiaziizaweis\Accounting\Models\AccountingDocumentMapping;
 use Abdiaziizaweis\Accounting\Models\AccountingExpenseCategoryMapping;
 use Abdiaziizaweis\Accounting\Models\AccountingPaymentMethodMapping;
+use Abdiaziizaweis\Accounting\Models\AccountingPaymentMethodMappingSide;
 use Abdiaziizaweis\Accounting\Registry\DocumentRegistry;
 use Illuminate\Support\Facades\DB;
 
@@ -179,7 +180,7 @@ class AccountingMappingSeeder
                 continue;
             }
 
-            AccountingPaymentMethodMapping::withoutGlobalScopes()->updateOrCreate(
+            $mapping = AccountingPaymentMethodMapping::withoutGlobalScopes()->updateOrCreate(
                 [
                     'branch_id' => $branchId,
                     'payment_method_id' => $method->id,
@@ -193,7 +194,35 @@ class AccountingMappingSeeder
                     'is_enabled' => true,
                 ]
             );
+
+            $this->upsertPaymentMethodSide($mapping, 'sales', $moneyIn, $arId);
+            $this->upsertPaymentMethodSide($mapping, 'purchase', $apId, $moneyIn);
         }
+    }
+
+    protected function upsertPaymentMethodSide(
+        AccountingPaymentMethodMapping $mapping,
+        string $module,
+        ?int $debitId,
+        ?int $creditId,
+    ): void {
+        if (! $debitId || ! $creditId) {
+            return;
+        }
+
+        AccountingPaymentMethodMappingSide::withoutGlobalScopes()->updateOrCreate(
+            [
+                'payment_method_mapping_id' => $mapping->id,
+                'module' => $module,
+            ],
+            [
+                'organization_id' => $mapping->organization_id,
+                'branch_id' => $mapping->branch_id,
+                'debit_account_id' => $debitId,
+                'credit_account_id' => $creditId,
+                'is_enabled' => (bool) $mapping->is_enabled,
+            ]
+        );
     }
 
     /**
