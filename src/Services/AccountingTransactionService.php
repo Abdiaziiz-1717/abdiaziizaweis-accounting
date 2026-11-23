@@ -248,6 +248,7 @@ class AccountingTransactionService
         $creditId = isset($hints['credit_account_id']) ? (int) $hints['credit_account_id'] : null;
 
         if (! $debitId || ! $creditId) {
+            $paymentSide = (string) ($hints['payment_side'] ?? $module ?? 'sales');
             $resolved = $this->resolver->resolve(
                 (int) $tx->organization_id,
                 (int) $tx->branch_id,
@@ -255,7 +256,7 @@ class AccountingTransactionService
                 $documentType,
                 isset($hints['payment_method_id']) ? (int) $hints['payment_method_id'] : null,
                 isset($hints['expense_category_id']) ? (int) $hints['expense_category_id'] : null,
-                $hints['payment_side'] ?? 'sales',
+                $paymentSide,
             );
             if ($resolved) {
                 $debitId = $resolved['debit_account_id'];
@@ -494,6 +495,14 @@ class AccountingTransactionService
             'inventory_purchase_return_void' => ['module' => AccountingModule::Inventory->value, 'document_type' => 'purchase_return_void'],
             'saas_invoice' => ['module' => AccountingModule::Saas->value, 'document_type' => 'invoice'],
             'saas_payment' => ['module' => AccountingModule::Saas->value, 'document_type' => 'payment'],
+            'sales_invoice' => ['module' => AccountingModule::Sales->value, 'document_type' => 'invoice'],
+            'sales_payment' => ['module' => AccountingModule::Sales->value, 'document_type' => 'payment'],
+            'sale_invoice' => ['module' => AccountingModule::Sales->value, 'document_type' => 'invoice'],
+            'sale_payment' => ['module' => AccountingModule::Sales->value, 'document_type' => 'payment'],
+            'service_invoice' => ['module' => AccountingModule::Service->value, 'document_type' => 'invoice'],
+            'service_payment' => ['module' => AccountingModule::Service->value, 'document_type' => 'payment'],
+            'parts_invoice' => ['module' => AccountingModule::Parts->value, 'document_type' => 'invoice'],
+            'parts_payment' => ['module' => AccountingModule::Parts->value, 'document_type' => 'payment'],
         ];
 
         return $map[$type] ?? null;

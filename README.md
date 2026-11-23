@@ -97,10 +97,13 @@ Deploy the package inside a Laravel app and call the HTTP API from any client la
 3. **Mappings** — Debit/credit account pairs for document types, payment methods, and expense categories.
 4. **Journal entries** — Balanced headers + lines; created from mapping, manual API, or transfers. **Void-based** lifecycle (no hard-delete of posted history).
 5. **Reports** — Trial balance, P&amp;L, balance sheet, cash flow, account statement, journal activity by month.
-6. **HTTP API** — Prefixed by `config('accounting.route_prefix')` (default `api/v1/accounting`).
-7. **Period controls** — Close books through `closing_date`; posting, voiding, journals, and transfers are blocked for dates on or before the close (see `AccountingPeriodGuard`).
-8. **Pluggable audit logging** — Implement `AccountingAuditInterface` (or use `NullAccountingAudit` / `SpatieAccountingAudit`) so host apps can record audit events for transactions, journals, and transfers.
-9. **Extensible reports** — Register custom reports or override built-in ones via `AccountingReportRegistry` without editing package source.
+6. **HTTP API** — Prefixed by `config('accounting.route_prefix')` (default `api/v1/accounting`); includes **`GET /health`** and **`GET /transactions/unmapped`** for production monitoring.
+7. **Core modules** — Built-in `sales`, `service`, and `parts` modules (enum + default CoA/mappings) alongside hotel, restaurant, purchase, inventory, etc.
+8. **Period controls** — Close books through `closing_date`; posting, voiding, journals, and transfers are blocked for dates on or before the close (see `AccountingPeriodGuard`).
+9. **Pluggable audit logging** — Implement `AccountingAuditInterface` (or use `NullAccountingAudit` / `SpatieAccountingAudit`) so host apps can record audit events for transactions, journals, and transfers.
+10. **Extensible reports** — Register custom reports or override built-in ones via `AccountingReportRegistry` without editing package source.
+
+**Payment methods are optional** on all document types — when `getPaymentMethodId()` is null, auto-map falls back to **document mapping** (`module` + `document_type`).
 
 
 ## Installation

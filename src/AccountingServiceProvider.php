@@ -12,6 +12,7 @@ use Abdiaziizaweis\Accounting\Context\MultiTenantContextResolver;
 use Abdiaziizaweis\Accounting\Context\MultiTenantMultiBranchContextResolver;
 use Abdiaziizaweis\Accounting\Context\SingleTenantContextResolver;
 use Abdiaziizaweis\Accounting\Database\Migration\TenancySchemaHelper;
+use Abdiaziizaweis\Accounting\Registry\BuiltinDocumentRegistry;
 use Abdiaziizaweis\Accounting\Audit\NullAccountingAudit;
 use Abdiaziizaweis\Accounting\Contracts\AccountingAuditInterface;
 use Abdiaziizaweis\Accounting\Contracts\AccountingAuthInterface;
@@ -102,6 +103,7 @@ class AccountingServiceProvider extends ServiceProvider
 
         $this->registerMiddlewareAliases();
         $this->registerPermissionMiddlewareAlias();
+        BuiltinDocumentRegistry::register();
         $this->loadRoutes();
     }
 

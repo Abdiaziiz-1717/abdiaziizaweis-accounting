@@ -75,4 +75,25 @@ interface AccountingDocumentInterface
      * Optional longer description for the transaction / journal entry header.
      */
     public function getDescription(): ?string;
+
+    /**
+     * Payment method ID for payment-method mapping resolution. Null for non-payments.
+     */
+    public function getPaymentMethodId(): ?int;
+
+    /**
+     * Expense category ID for expense-category mapping resolution. Null for non-expenses.
+     */
+    public function getExpenseCategoryId(): ?int;
+
+    /**
+     * Owner user ID for the transaction. Null uses the authenticated user from context.
+     */
+    public function getOwnerUserId(): ?int;
+
+    /**
+     * Module side for payment-method mapping (`sales`, `purchase`, `expenses`, …).
+     * Defaults to {@see getDocumentModule()} on models using {@see \Abdiaziizaweis\Accounting\Concerns\HasDefaultDocumentMethods}.
+     */
+    public function getPaymentSide(): string;
 }

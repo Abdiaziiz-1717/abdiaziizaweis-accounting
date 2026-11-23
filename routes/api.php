@@ -5,6 +5,7 @@ use Abdiaziizaweis\Accounting\Http\Controllers\AccountingAccountController;
 use Abdiaziizaweis\Accounting\Http\Controllers\AccountingBootstrapController;
 use Abdiaziizaweis\Accounting\Http\Controllers\AccountingDocumentMappingController;
 use Abdiaziizaweis\Accounting\Http\Controllers\AccountingExpenseCategoryMappingController;
+use Abdiaziizaweis\Accounting\Http\Controllers\AccountingHealthController;
 use Abdiaziizaweis\Accounting\Http\Controllers\AccountingJournalEntryController;
 use Abdiaziizaweis\Accounting\Http\Controllers\AccountingPaymentMethodMappingController;
 use Abdiaziizaweis\Accounting\Http\Controllers\AccountingPaymentMethodMappingSideController;
@@ -16,6 +17,9 @@ use Abdiaziizaweis\Accounting\Http\Controllers\AccountingTransferController;
 use Abdiaziizaweis\Accounting\Http\Controllers\DocumentRegistryController;
 
 Route::get('/registry/documents', [DocumentRegistryController::class, 'index']);
+
+Route::get('/health', [AccountingHealthController::class, 'index'])
+    ->middleware('permission:view accounting transactions');
 
 Route::post('/bootstrap', [AccountingBootstrapController::class, 'seed'])
     ->middleware('permission:manage accounting settings');
@@ -61,6 +65,8 @@ Route::post('/journal-entries/{id}/restore', [AccountingJournalEntryController::
     ->middleware('permission:edit accounting journal entries');
 
 Route::get('/transactions', [AccountingTransactionController::class, 'index'])
+    ->middleware('permission:view accounting transactions');
+Route::get('/transactions/unmapped', [AccountingTransactionController::class, 'unmapped'])
     ->middleware('permission:view accounting transactions');
 Route::post('/transactions/bulk-map', [AccountingTransactionController::class, 'bulkMap'])
     ->middleware('permission:edit accounting transactions');

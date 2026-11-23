@@ -149,11 +149,16 @@ class AccountingMappingResolver
     /**
      * Composite resolver used by AccountingTransactionService::tryAutoMap.
      *
-     * Priority order:
-     *  1. Explicit debit/credit accounts passed via hints (caller handles that).
-     *  2. Expense category map (when expenseCategoryId is set).
-     *  3. Payment method map (when paymentMethodId is set).
-     *  4. Document map (module + documentType fallback).
+     * Resolution priority:
+     * 1. Expense category map (when {@see getExpenseCategoryId()} / hint is set)
+     * 2. Payment method map — module side (when {@see getPaymentMethodId()} / hint is set);
+     *    uses {@see getPaymentSide()} as the side module key
+     * 3. Payment method map — legacy sales/purchase columns (backward compat)
+     * 4. Document map (module + document_type) ← final fallback
+     *
+     * When no payment_method_id is provided, step 2–3 are skipped and document
+     * mapping applies (e.g. sales + payment → cash / AR). No payment method is
+     * required for any document type when document mappings exist.
      *
      * Returns null when no matching mapping is found.
      *
@@ -176,10 +181,10 @@ class AccountingMappingResolver
             }
         }
 
-        // 2. Payment method map (`payment_side` hint, else document module, else sales).
+        // 2–3. Payment method map (sides + legacy), only when a payment method id is set.
         if ($paymentMethodId) {
-            $pmModule = $paymentModule;
-            if (in_array($pmModule, ['', 'sales'], true) && $module !== null) {
+            $pmModule = trim($paymentModule);
+            if ($pmModule === '' && $module !== null) {
                 $pmModule = $module instanceof AccountingModule ? $module->value : (string) $module;
             }
             if ($pmModule === '') {

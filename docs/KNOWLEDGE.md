@@ -135,11 +135,15 @@ DocumentRegistry::register(
 - `AccountingMappingSeeder` creates `accounting_document_mappings` for each `DocumentRegistry::all()` row (skips SaaS module unless org is “master”).
 - `DocumentRegistry::clear()` — tests only.
 
+**Builtin modules (package):** `Abdiaziizaweis\Accounting\Registry\BuiltinDocumentRegistry` registers default invoice/payment pairs for **`sales`**, **`service`**, and **`parts`** (enum cases on `AccountingModule`) on provider boot and before mapping seed. Hosts can override by calling `DocumentRegistry::register()` first.
+
+**`AccountingModule` enum:** `hotel`, `restaurant`, `events`, `purchase`, `crm`, `inventory`, `payroll`, `expenses`, `saas`, **`sales`**, **`service`**, **`parts`**.
+
 ---
 
 ## 6. Implementing AccountingDocumentInterface
 
-All methods required on the host adapter:
+All methods are required on the host adapter (signatures on the interface; defaults via trait below).
 
 | Method | Role |
 |--------|------|
@@ -154,13 +158,18 @@ All methods required on the host adapter:
 | `getMorphClass()` | Morph type |
 | `getReference()` | Optional ref |
 | `getDescription()` | Optional description |
+| `getPaymentMethodId()` | Payment-method mapping; **`null`** → skip PM map, use document map |
+| `getExpenseCategoryId()` | Expense-category mapping; **`null`** for non-expenses |
+| `getOwnerUserId()` | Transaction owner; **`null`** → authenticated user from context |
+| `getPaymentSide()` | PM side key (`sales`, `purchase`, `expenses`, …); default = `getDocumentModule()` |
 
-Optional: `getPaymentMethodId()`, `getExpenseCategoryId()`, `getOwnerUserId()`.
+**`HasDefaultDocumentMethods` trait** — included by **`HasAccountingDocument`**. Returns `null` / `null` / `null` / `getDocumentModule()` for the four optional methods. **If you use `HasAccountingDocument`, defaults are already included — only override what you need** (e.g. `getPaymentMethodId()` on payment models, `getExpenseCategoryId()` on expenses, `getPaymentSide(): 'purchase'` on purchase payments).
 
 ---
 
 ## 7. HasAccountingDocument trait
 
+- Uses `HasDefaultDocumentMethods` for optional interface methods.
 - `bootHasAccountingDocument()` throws if interface missing.
 - `saved` → `AccountingDocumentBridge::record()`
 - `deleting` → `voidFor(..., strict: true)`
@@ -246,12 +255,16 @@ Active scope excludes `voided` on default API listings.
 
 **Payment method:** One row per `payment_method_id` per branch. **Module sides** live in `accounting_payment_method_mapping_sides` — each side is a `(module → debit/credit)` pair (`sales`, `purchase`, `expenses`, `payroll`, or any custom module string).
 
-Resolution order for payment-method maps:
+**`AccountingMappingResolver::resolve()` priority** (same as `tryAutoMap` after explicit debit/credit hints):
 
-1. Enabled side row matching `payment_side` (or inferred document `module` when `payment_side` is `sales`/empty).
-2. Legacy columns on `accounting_payment_method_mappings` for `sales` and `purchase` only (backward compatible).
+1. **Expense category map** when `getExpenseCategoryId()` / hint is set.
+2. **Payment method map — module side** when `getPaymentMethodId()` / hint is set; side key from `getPaymentSide()` (e.g. sales payment → `sales`, purchase payment → `purchase` or `purchases` normalized to `purchase`).
+3. **Payment method map — legacy columns** on `accounting_payment_method_mappings` (`sales_*` / `purchase_*` fields) if no side row matches.
+4. **Document map** (`module` + `document_type`) — **always the final fallback**.
 
-`tryAutoMap` / `AccountingMappingResolver::resolvePaymentMethod($paymentMethodId, $module)` pass the module context.
+When **`getPaymentMethodId()` is `null`**, steps 2–3 are skipped. Sales, purchase, and expense **payments** then resolve like purchases today: e.g. `module=sales`, `document_type=payment` → debit cash, credit AR (from document mapping). No payment method ID is required if document mappings exist.
+
+Override **`getPaymentSide()`** when the payment-method side differs from `getDocumentModule()` (example: document module `purchase`, payment side `purchase` for AP payments).
 
 **API — payment method sides** (permission: view/edit accounting mappings):
 
@@ -310,7 +323,7 @@ From `AccountingCoaSeeder` (stable `key_name` values):
 
 **Equity:** `opening_balance_equity`, `retained_earnings`, `owner_equity`
 
-**Income:** `sales`, `hotel_revenue`, `restaurant_revenue`, `event_revenue`, `saas_revenue`, `sales_discounts`, `other_income`, `uncategorised_income`
+**Income:** `sales`, `sales_revenue`, `service_revenue`, `parts_revenue`, `hotel_revenue`, `restaurant_revenue`, `event_revenue`, `saas_revenue`, `sales_discounts`, `other_income`, `uncategorised_income`
 
 **COGS:** `cost_of_sales`, `purchase_discounts`, `inventory_adjustments`, `waste_and_spoilage`, `purchase_returns`
 
@@ -371,6 +384,8 @@ Standard JSON: `{ success, message?, data?, errors?, status_code?, pagination? }
 
 ### Transactions
 | GET | `/transactions` | `view accounting transactions` | `type`, `status`, `module`, dates, `include_voided` | paginated |
+| GET | `/transactions/unmapped` | `view accounting transactions` | pagination | monitoring payload |
+| GET | `/health` | `view accounting transactions` | — | status summary |
 | POST | `/transactions/bulk-map` | `edit accounting transactions` | `ids[]`, optional mapping hints | `{ mapped, failed[] }` |
 | GET | `/transactions/{id}` | view | — | full relations |
 | POST | `/transactions/{id}/map` | edit | `debit_account_id`, `credit_account_id` | mapped tx |
@@ -645,6 +660,39 @@ class CustomProfitAndLossReport implements AccountingReportInterface
 ```
 
 `handle()` must return an `array`. Custom report controllers wrap the result in the standard `{ success, message, data }` envelope.
+
+---
+
+## 22. Production monitoring
+
+### Health check
+
+`GET {prefix}/health` (permission: `view accounting transactions`)
+
+Call from a monitoring dashboard or uptime service. Response `data` includes:
+
+- `status`: `ok` | `warning` | `critical`
+- `unmapped_transactions`, `oldest_unmapped_days`
+- `last_journal_entry_date`, `books_closed`, `closing_date`
+- `total_accounts`, `disabled_mappings`
+
+Rules: `critical` if ≥10 unmapped or oldest unmapped &gt; 7 days; `warning` if any unmapped or disabled mappings; else `ok`.
+
+### Unmapped transactions
+
+`GET {prefix}/transactions/unmapped` — convenience list of `not_mapped` transactions with morph trace, `created_at`, and humanized `unmapped_for`.
+
+Common causes: missing/disabled document mapping, bootstrap not run, period closed (check logs), bridge exception.
+
+### Log monitoring
+
+Watch for `AccountingDocumentBridge failed` in `storage/logs` — silent posting failure.
+
+### Recommended monitoring setup
+
+- Poll `GET {prefix}/health` every 5 minutes; alert when `status` ≠ `ok`.
+- Review `/transactions/unmapped` daily during the first week after go-live.
+- Weekly notification if `unmapped_transactions` &gt; 0.
 
 ---
 

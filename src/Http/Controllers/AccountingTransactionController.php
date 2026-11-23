@@ -5,9 +5,11 @@ namespace Abdiaziizaweis\Accounting\Http\Controllers;
 use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
 
 use Abdiaziizaweis\Accounting\Http\Controllers\BaseController;
+use Abdiaziizaweis\Accounting\Enums\AccountingTransactionStatus;
 use Abdiaziizaweis\Accounting\Models\AccountingTransaction;
 use Abdiaziizaweis\Accounting\Services\AccountingTransactionService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 
 class AccountingTransactionController extends BaseController
@@ -70,8 +72,12 @@ class AccountingTransactionController extends BaseController
                     'sales' => $q->where(function ($inner) {
                         $inner->where('type', 'like', 'hotel_%')
                             ->orWhere('type', 'like', 'restaurant_%')
-                            ->orWhere('type', 'like', 'event_%');
+                            ->orWhere('type', 'like', 'event_%')
+                            ->orWhere('type', 'like', 'sales_%')
+                            ->orWhere('type', 'like', 'sale_%');
                     }),
+                    'service' => $q->where('type', 'like', 'service_%'),
+                    'parts' => $q->where('type', 'like', 'parts_%'),
                     'events', 'event' => $q->where('type', 'like', 'event_%'),
                     'expenses', 'expense' => $q->where('type', 'expense'),
                     'crm' => $q->where(function ($inner) {
@@ -95,6 +101,62 @@ class AccountingTransactionController extends BaseController
         }
 
         return $this->paginateResponse($query, $request);
+    }
+
+    /**
+     * Convenience listing for monitoring: active transactions stuck in not_mapped.
+     */
+    public function unmapped(Request $request)
+    {
+        $query = $this->applyOwnershipScope($this->model::query())
+            ->active()
+            ->where('status', AccountingTransactionStatus::NotMapped)
+            ->with([
+                'transactionable',
+                'journalEntry:id,number',
+            ])
+            ->orderByDesc('created_at');
+
+        $query = $this->applyApiFilters(
+            $query,
+            $request,
+            $this->searchableFields,
+            $this->sortableFields,
+            'created_at',
+            'desc'
+        );
+
+        $perPage = min(max((int) $request->input('per_page', 50), 1), 100);
+        $page = max((int) $request->input('page', 1), 1);
+        $paginator = $query->paginate($perPage, ['*'], 'page', $page);
+
+        $items = collect($paginator->items())->map(function (AccountingTransaction $tx) {
+            $createdAt = $tx->created_at ? Carbon::parse($tx->created_at) : now();
+
+            return [
+                'id' => (int) $tx->id,
+                'type' => (string) $tx->type,
+                'amount' => (float) $tx->amount,
+                'reference' => $tx->reference,
+                'description' => $tx->description,
+                'transaction_date' => $tx->transaction_date?->toDateString(),
+                'created_at' => $createdAt->toIso8601String(),
+                'unmapped_for' => $createdAt->diffForHumans(now(), true),
+                'unmapped_days' => (int) $createdAt->diffInDays(now()),
+                'transactionable_type' => $tx->transactionable_type,
+                'transactionable_id' => $tx->transactionable_id ? (int) $tx->transactionable_id : null,
+            ];
+        });
+
+        return $this->successResponse([
+            'data' => $items,
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+                'last_page' => $paginator->lastPage(),
+            ],
+        ], 'Unmapped transactions');
     }
 
     public function bulkMap(Request $request)

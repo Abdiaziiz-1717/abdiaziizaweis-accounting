@@ -145,6 +145,9 @@ class AccountingCoaSeeder
             $create('Restaurant Revenue', AccountingAccountType::Income, 'restaurant_revenue', 'income_parent', '4120', 'Restaurant / POS / order invoices');
             $create('Event Revenue', AccountingAccountType::Income, 'event_revenue', 'income_parent', '4130', 'Event hall booking invoices');
             $create('SaaS Revenue', AccountingAccountType::Income, 'saas_revenue', 'income_parent', '4150', 'SaaS subscription billing (master org)');
+            $create('Sales Revenue', AccountingAccountType::Income, 'sales_revenue', 'income_parent', '4140', 'Product / vehicle sales revenue');
+            $create('Service Revenue', AccountingAccountType::Income, 'service_revenue', 'income_parent', '4145', 'Service department revenue');
+            $create('Parts Revenue', AccountingAccountType::Income, 'parts_revenue', 'income_parent', '4160', 'Parts counter revenue');
             $create('Sales Discounts', AccountingAccountType::Income, 'sales_discounts', 'income_parent', '4200', 'Contra-revenue: discounts given to customers');
             $create('Other Income', AccountingAccountType::OtherIncome, 'other_income', 'income_parent', '4800');
             $create('Uncategorised Income', AccountingAccountType::OtherIncome, 'uncategorised_income', 'income_parent', '4900');

@@ -22,6 +22,10 @@ class AccountingDocumentBridge
         'hotel_invoice',
         'restaurant_invoice',
         'event_invoice',
+        'sales_invoice',
+        'sale_invoice',
+        'service_invoice',
+        'parts_invoice',
     ];
 
     public function __construct(
@@ -78,22 +82,16 @@ class AccountingDocumentBridge
             $invoiceSplitTypes = [...self::SALES_INVOICE_TX_TYPES, 'purchase_invoice'];
             $attrs['auto_map'] = ! in_array($type, $invoiceSplitTypes, true);
 
-            if ($type === 'purchase_payment') {
-                $attrs['payment_side'] = 'purchase';
+            $attrs['payment_side'] = $document->getPaymentSide();
+
+            $paymentMethodId = $document->getPaymentMethodId();
+            if ($paymentMethodId) {
+                $attrs['payment_method_id'] = (int) $paymentMethodId;
             }
 
-            if (method_exists($document, 'getPaymentMethodId')) {
-                $paymentMethodId = $document->getPaymentMethodId();
-                if ($paymentMethodId) {
-                    $attrs['payment_method_id'] = (int) $paymentMethodId;
-                }
-            }
-
-            if (method_exists($document, 'getExpenseCategoryId')) {
-                $expenseCategoryId = $document->getExpenseCategoryId();
-                if ($expenseCategoryId) {
-                    $attrs['expense_category_id'] = (int) $expenseCategoryId;
-                }
+            $expenseCategoryId = $document->getExpenseCategoryId();
+            if ($expenseCategoryId) {
+                $attrs['expense_category_id'] = (int) $expenseCategoryId;
             }
 
             if ($type === 'inventory_adjustment') {
@@ -341,10 +339,9 @@ class AccountingDocumentBridge
 
     protected function ownerUserId(AccountingDocumentInterface $document, AccountingContextInterface $context): ?int
     {
-        if (method_exists($document, 'getOwnerUserId')) {
-            $owner = $document->getOwnerUserId();
-
-            return $owner !== null ? (int) $owner : null;
+        $owner = $document->getOwnerUserId();
+        if ($owner !== null) {
+            return (int) $owner;
         }
 
         $userId = $context->getUserId();

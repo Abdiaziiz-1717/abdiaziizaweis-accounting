@@ -26,6 +26,8 @@ use LogicException;
  */
 trait HasAccountingDocument
 {
+    use HasDefaultDocumentMethods;
+
     public static function bootHasAccountingDocument(): void
     {
         $implements = class_implements(static::class) ?: [];

@@ -8,6 +8,7 @@ use Abdiaziizaweis\Accounting\Models\AccountingExpenseCategoryMapping;
 use Abdiaziizaweis\Accounting\Models\AccountingPaymentMethodMapping;
 use Abdiaziizaweis\Accounting\Models\AccountingPaymentMethodMappingSide;
 use Abdiaziizaweis\Accounting\Database\Migration\TenancySchemaHelper;
+use Abdiaziizaweis\Accounting\Registry\BuiltinDocumentRegistry;
 use Abdiaziizaweis\Accounting\Registry\DocumentRegistry;
 use Illuminate\Support\Facades\DB;
 
@@ -31,6 +32,8 @@ class AccountingMappingSeeder
         bool $force = false,
     ): void {
         DB::transaction(function () use ($organizationId, $branchId, $ownerUserId, $force) {
+            BuiltinDocumentRegistry::register();
+
             $this->coa->seedDefaultsForBranch($organizationId, $branchId, $ownerUserId);
 
             if (TenancySchemaHelper::usesOrganizationId()) {

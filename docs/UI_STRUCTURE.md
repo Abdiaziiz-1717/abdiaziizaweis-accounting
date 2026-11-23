@@ -720,6 +720,8 @@ Common list query params (where supported): `page`, `per_page`, `search_term`, `
 | GET | `/accounts/trashed/list` | Trash bin UI | pagination |
 | POST | `/accounts/{id}/restore` | Restore | — |
 | DELETE | `/accounts/{id}/force` | Force delete | — |
+| GET | `/health` | Monitoring | — (status summary) |
+| GET | `/transactions/unmapped` | Monitoring | pagination |
 | GET | `/transactions` | Transactions | `module`, `status`, `date_from`, `date_to`, `include_voided` |
 | GET | `/transactions/{id}` | Tx detail | — |
 | POST | `/transactions/bulk-map` | Bulk map | `ids`, `debit_account_id?`, `credit_account_id?` |

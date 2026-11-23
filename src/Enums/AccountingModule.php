@@ -13,4 +13,7 @@ enum AccountingModule: string
     case Payroll = 'payroll';
     case Expenses = 'expenses';
     case Saas = 'saas';
+    case Sales = 'sales';
+    case Service = 'service';
+    case Parts = 'parts';
 }
