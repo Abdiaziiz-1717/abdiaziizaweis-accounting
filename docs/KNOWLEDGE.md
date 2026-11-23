@@ -472,4 +472,106 @@ Binding in the host overrides the config driver for that application.
 
 ---
 
+## 21. Custom and overridden reports
+
+Hosts can add reports to the accounting API and replace built-in statement logic without forking the package.
+
+### `AccountingReportInterface`
+
+| Method | Purpose |
+|--------|---------|
+| `label(): string` | Human-readable title for UIs and discovery. |
+| `rules(): array` | Laravel validation rules for query/body filters. |
+| `handle(array $filters): array` | Run the report; return a JSON-serializable array. |
+
+### `AccountingReportRegistry`
+
+| Method | Purpose |
+|--------|---------|
+| `register($name, $label, $handler)` | Add a **custom** report (`$name` = slug: letters, digits, hyphens). |
+| `override($name, $handler)` | Replace a **built-in** handler by slug. |
+| `allCustom()` | List registered custom reports (`name`, `label`, `handler`). |
+| `getOverride($builtInName)` / `hasOverride($builtInName)` | Inspect overrides. |
+| `clear()` | Reset registry (tests only). |
+
+Built-in override names: `trial-balance`, `profit-and-loss`, `balance-sheet`, `cash-flow`, `account-statement`, `journal-activity-by-month`.
+
+`AccountingReportService` checks `hasOverride()` at the start of each built-in method. When set, it resolves the handler from the container and returns `handle($filters)` with normalized filter keys (`as_of`, `date_from`, `date_to`, `account_id`, `fy_start`, `limit`, etc.).
+
+### Register a custom report
+
+In `AppServiceProvider::boot()`:
+
+```php
+use Abdiaziizaweis\Accounting\Registry\AccountingReportRegistry;
+use App\Reports\SalesByCategoryReport;
+
+AccountingReportRegistry::register(
+    name: 'sales-by-category',
+    label: 'Sales by Category',
+    handler: SalesByCategoryReport::class,
+);
+```
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET {prefix}/reports/custom` | Discovery — all custom reports (`name`, `label`, `handler`). |
+| `GET {prefix}/reports/custom/{name}` | Run report; validates query params with `rules()`. |
+
+Example: `GET /api/v1/accounting/reports/custom/sales-by-category?date_from=2026-01-01&date_to=2026-01-31`
+
+Permission: `view accounting reports` (same as built-in reports).
+
+See `docs/examples/SalesByCategoryReport.php` for a full handler example (income accounts by CoA row over a date range).
+
+### Override a built-in report
+
+```php
+AccountingReportRegistry::override(
+    name: 'profit-and-loss',
+    handler: CustomProfitAndLossReport::class,
+);
+```
+
+`GET {prefix}/reports/profit-and-loss` continues to use the same URL and controller; `AccountingReportService::profitAndLoss()` delegates to your handler. No route changes required.
+
+### Implementing `AccountingReportInterface`
+
+```php
+namespace App\Reports;
+
+use Abdiaziizaweis\Accounting\Contracts\AccountingReportInterface;
+
+class CustomProfitAndLossReport implements AccountingReportInterface
+{
+    public function label(): string
+    {
+        return 'Profit & Loss (custom)';
+    }
+
+    public function rules(): array
+    {
+        return [
+            'date_from' => ['required', 'date'],
+            'date_to' => ['required', 'date', 'after_or_equal:date_from'],
+        ];
+    }
+
+    public function handle(array $filters): array
+    {
+        // Query ledger, shape sections, return array payload.
+        return [
+            'date_from' => $filters['date_from'],
+            'date_to' => $filters['date_to'],
+            'sections' => [],
+            'net_income' => 0.0,
+        ];
+    }
+}
+```
+
+`handle()` must return an `array`. Custom report controllers wrap the result in the standard `{ success, message, data }` envelope.
+
+---
+
 *Package version context: Laravel 11, PHP 8.2+, void-based tx/JE lifecycle, reconcile feature removed in migration `2026_09_09_110000_drop_reconcile`.*

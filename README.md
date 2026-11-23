@@ -61,6 +61,7 @@ Host apps need `users`, and—depending on tenancy—`organizations`, `branches`
 6. **HTTP API** — Prefixed by `config('accounting.route_prefix')` (default `api/v1/accounting`).
 7. **Period controls** — Close books through `closing_date`; posting, voiding, journals, and transfers are blocked for dates on or before the close (see `AccountingPeriodGuard`).
 8. **Pluggable audit logging** — Implement `AccountingAuditInterface` (or use `NullAccountingAudit` / `SpatieAccountingAudit`) so host apps can record audit events for transactions, journals, and transfers.
+9. **Extensible reports** — Register custom reports or override built-in ones via `AccountingReportRegistry` without editing package source.
 
 ---
 
@@ -342,6 +343,8 @@ Response envelope: `{ "success": true, "message": "...", "data": { ... } }`
 | Cash flow | GET | `/cash-flow` | `date_from`, `date_to` | `opening_cash`, `closing_cash`, `sections[]` (operating, investing, financing), `net_change`, `implied_closing` |
 | Account statement | GET | `/account-statement` | **required** `account_id`; `date_from`, `date_to` | `account`, `opening_balance`, `closing_balance`, `period_debit`, `period_credit`, `rows[]` |
 | Journal activity by month | GET | `/journal-activity-by-month` | `date_from`, `date_to`, `limit` (1–60, default 24) | `months[]`, `peak_month`, `peak_entry_count`, `matching_record_count`, etc. |
+| Custom reports (list) | GET | `/reports/custom` | — | `data[]` with `name`, `label`, `handler` per registered report |
+| Custom report (run) | GET | `/reports/custom/{name}` | Per handler `rules()` | Handler-defined `data` object |
 
 Default period: `date_to` = today; `date_from` = start of current month (swapped if inverted).
 

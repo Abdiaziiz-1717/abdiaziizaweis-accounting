@@ -3,8 +3,9 @@
 namespace Abdiaziizaweis\Accounting\Services;
 
 use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
-
+use Abdiaziizaweis\Accounting\Contracts\AccountingReportInterface;
 use Abdiaziizaweis\Accounting\Enums\AccountingAccountType;
+use Abdiaziizaweis\Accounting\Registry\AccountingReportRegistry;
 use Abdiaziizaweis\Accounting\Models\AccountingAccount;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -131,6 +132,12 @@ class AccountingReportService
      */
     public function trialBalance(Carbon $asOf): array
     {
+        if (AccountingReportRegistry::hasOverride('trial-balance')) {
+            return $this->runOverride('trial-balance', [
+                'as_of' => $asOf->toDateString(),
+            ]);
+        }
+
         $rows = [];
         $totalDebit = 0.0;
         $totalCredit = 0.0;
@@ -170,6 +177,13 @@ class AccountingReportService
      */
     public function profitAndLoss(Carbon $from, Carbon $to): array
     {
+        if (AccountingReportRegistry::hasOverride('profit-and-loss')) {
+            return $this->runOverride('profit-and-loss', [
+                'date_from' => $from->toDateString(),
+                'date_to' => $to->toDateString(),
+            ]);
+        }
+
         $activity = $this->accountActivity($from, $to);
 
         $income = $this->sectionLines($activity, self::INCOME_TYPES);
@@ -231,6 +245,13 @@ class AccountingReportService
     public function balanceSheet(Carbon $asOf, ?Carbon $fyStart = null): array
     {
         $fyStart = $fyStart ?? $asOf->copy()->startOfYear();
+
+        if (AccountingReportRegistry::hasOverride('balance-sheet')) {
+            return $this->runOverride('balance-sheet', [
+                'as_of' => $asOf->toDateString(),
+                'fy_start' => $fyStart->toDateString(),
+            ]);
+        }
         $cumulative = $this->accountActivity(null, $asOf);
         $ytdPl = $this->profitAndLoss($fyStart, $asOf);
         $netIncome = (float) $ytdPl['net_income'];
@@ -293,6 +314,14 @@ class AccountingReportService
      */
     public function accountStatement(int $accountId, Carbon $from, Carbon $to): array
     {
+        if (AccountingReportRegistry::hasOverride('account-statement')) {
+            return $this->runOverride('account-statement', [
+                'account_id' => $accountId,
+                'date_from' => $from->toDateString(),
+                'date_to' => $to->toDateString(),
+            ]);
+        }
+
         $account = AccountingAccount::query()->find($accountId);
         if (! $account) {
             throw new \Illuminate\Database\Eloquent\ModelNotFoundException('Account not found.');
@@ -388,6 +417,12 @@ class AccountingReportService
      */
     public function cashFlow(Carbon $from, Carbon $to): array
     {
+        if (AccountingReportRegistry::hasOverride('cash-flow')) {
+            return $this->runOverride('cash-flow', [
+                'date_from' => $from->toDateString(),
+                'date_to' => $to->toDateString(),
+            ]);
+        }
         $openingAsOf = $from->copy()->subDay();
         $openingCash = $this->cashBalanceAsOf($openingAsOf);
         $closingCash = $this->cashBalanceAsOf($to);
@@ -711,6 +746,14 @@ class AccountingReportService
     {
         $limit = max(1, min(60, $limit));
 
+        if (AccountingReportRegistry::hasOverride('journal-activity-by-month')) {
+            return $this->runOverride('journal-activity-by-month', [
+                'date_from' => $from?->toDateString(),
+                'date_to' => $to->toDateString(),
+                'limit' => $limit,
+            ]);
+        }
+
         $entryScope = \Abdiaziizaweis\Accounting\Models\AccountingJournalEntry::query()->select('id');
 
         $query = DB::table('accounting_journal_entries as je')
@@ -772,5 +815,22 @@ class AccountingReportService
             'peak_entry_count' => (int) ($peak['entry_count'] ?? 0),
             'matching_record_count' => count($months),
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return array<string, mixed>
+     */
+    protected function runOverride(string $builtInName, array $filters): array
+    {
+        $handlerClass = AccountingReportRegistry::getOverride($builtInName);
+        if ($handlerClass === null) {
+            throw new \RuntimeException("Missing override handler for [{$builtInName}].");
+        }
+
+        /** @var AccountingReportInterface $handler */
+        $handler = app($handlerClass);
+
+        return $handler->handle($filters);
     }
 }

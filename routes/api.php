@@ -8,6 +8,7 @@ use Abdiaziizaweis\Accounting\Http\Controllers\AccountingExpenseCategoryMappingC
 use Abdiaziizaweis\Accounting\Http\Controllers\AccountingJournalEntryController;
 use Abdiaziizaweis\Accounting\Http\Controllers\AccountingPaymentMethodMappingController;
 use Abdiaziizaweis\Accounting\Http\Controllers\AccountingReportController;
+use Abdiaziizaweis\Accounting\Http\Controllers\CustomReportController;
 use Abdiaziizaweis\Accounting\Http\Controllers\AccountingSettingsController;
 use Abdiaziizaweis\Accounting\Http\Controllers\AccountingTransactionController;
 use Abdiaziizaweis\Accounting\Http\Controllers\AccountingTransferController;
@@ -94,6 +95,9 @@ Route::delete('/transfers/{id}', [AccountingTransferController::class, 'destroy'
     ->middleware('permission:delete accounting transfers');
 
 Route::prefix('reports')->middleware('permission:view accounting reports')->group(function () {
+    Route::get('/custom', [CustomReportController::class, 'index']);
+    Route::get('/custom/{name}', [CustomReportController::class, 'show']);
+
     Route::get('/trial-balance', [AccountingReportController::class, 'trialBalance']);
     Route::get('/profit-and-loss', [AccountingReportController::class, 'profitAndLoss']);
     Route::get('/balance-sheet', [AccountingReportController::class, 'balanceSheet']);
