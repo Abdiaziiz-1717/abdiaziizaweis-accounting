@@ -37,6 +37,12 @@ return new class extends Migration
         }
 
         if ($hasReconIdx || $hasRecIdx || $hasRecId || $hasIsRecon) {
+            if ($this->foreignKeyExists('accounting_journal_entry_lines', 'acct_jel_rec_fk')) {
+                Schema::table('accounting_journal_entry_lines', function (Blueprint $table) {
+                    $table->dropForeign('acct_jel_rec_fk');
+                });
+            }
+
             Schema::table('accounting_journal_entry_lines', function (Blueprint $table) use (
                 $hasReconIdx, $hasRecIdx, $hasRecId, $hasIsRecon
             ) {
@@ -63,23 +69,25 @@ return new class extends Migration
         // ── 2.  Drop the reconciles table ─────────────────────────────────────
         Schema::dropIfExists('accounting_reconciles');
 
-        // ── 3.  Remove the 3 reconcile Spatie permissions ─────────────────────
-        $permNames = [
-            'view accounting reconciles',
-            'create accounting reconciles',
-            'edit accounting reconciles',
-        ];
-        $permIds = DB::table('permissions')
-            ->whereIn('name', $permNames)
-            ->pluck('id');
+        // ── 3.  Remove the 3 reconcile Spatie permissions (optional host tables) ─
+        if (Schema::hasTable('permissions')) {
+            $permNames = [
+                'view accounting reconciles',
+                'create accounting reconciles',
+                'edit accounting reconciles',
+            ];
+            $permIds = DB::table('permissions')
+                ->whereIn('name', $permNames)
+                ->pluck('id');
 
-        if ($permIds->isNotEmpty()) {
-            foreach (['role_has_permissions', 'model_has_permissions', 'saas_module_permissions'] as $pivot) {
-                if (Schema::hasTable($pivot)) {
-                    DB::table($pivot)->whereIn('permission_id', $permIds)->delete();
+            if ($permIds->isNotEmpty()) {
+                foreach (['role_has_permissions', 'model_has_permissions', 'saas_module_permissions'] as $pivot) {
+                    if (Schema::hasTable($pivot)) {
+                        DB::table($pivot)->whereIn('permission_id', $permIds)->delete();
+                    }
                 }
+                DB::table('permissions')->whereIn('id', $permIds)->delete();
             }
-            DB::table('permissions')->whereIn('id', $permIds)->delete();
         }
     }
 
@@ -123,6 +131,25 @@ return new class extends Migration
               AND INDEX_NAME = ?
             LIMIT 1
         ', [$table, $indexName]);
+
+        return ! empty($rows);
+    }
+
+    private function foreignKeyExists(string $table, string $constraintName): bool
+    {
+        $driver = Schema::getConnection()->getDriverName();
+        if (! in_array($driver, ['mysql', 'mariadb'], true)) {
+            return false;
+        }
+
+        $rows = DB::select('
+            SELECT 1 FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = ?
+              AND CONSTRAINT_NAME = ?
+              AND CONSTRAINT_TYPE = "FOREIGN KEY"
+            LIMIT 1
+        ', [$table, $constraintName]);
 
         return ! empty($rows);
     }

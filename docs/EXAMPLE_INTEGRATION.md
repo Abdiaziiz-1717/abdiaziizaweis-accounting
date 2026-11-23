@@ -187,7 +187,7 @@ public function getJournalLines(): ?array
     return [
         JournalLine::debit('accounts_receivable', $this->total),
         JournalLine::credit('sales_revenue', $this->subtotal),
-        JournalLine::debit('cost_of_goods_sold', $this->cost),
+        JournalLine::debit('cost_of_sales', $this->cost),
         JournalLine::credit('inventory_asset', $this->cost),
     ];
 }

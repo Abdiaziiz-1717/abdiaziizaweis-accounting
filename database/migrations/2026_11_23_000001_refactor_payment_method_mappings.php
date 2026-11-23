@@ -19,8 +19,9 @@ return new class extends Migration
             $table->id();
             TenancySchemaHelper::addOrganizationColumn($table);
             TenancySchemaHelper::addBranchColumn($table);
-            $table->foreignId('payment_method_mapping_id')
-                ->constrained('accounting_payment_method_mappings')
+            $table->unsignedBigInteger('payment_method_mapping_id');
+            $table->foreign('payment_method_mapping_id', 'acct_pm_side_map_fk')
+                ->references('id')->on('accounting_payment_method_mappings')
                 ->cascadeOnDelete();
             $table->string('module', 64);
             $table->unsignedBigInteger('debit_account_id')->nullable();

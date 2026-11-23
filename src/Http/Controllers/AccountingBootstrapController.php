@@ -35,7 +35,7 @@ class AccountingBootstrapController extends BaseController
         $this->mappingSeeder->seedDefaultsForBranch(
             $orgId,
             $branchId,
-            app(AccountingAuthInterface::class)->user()?->id,
+            app(AccountingAuthInterface::class)->userOrNull()?->id,
             (bool) $request->boolean('force')
         );
 

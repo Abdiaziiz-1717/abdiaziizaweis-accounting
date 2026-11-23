@@ -125,8 +125,10 @@ public function getJournalLines(): ?array
 ### 1. Composer
 
 ```bash
-composer require abdiaziizaweis/accounting
+composer require abdiaziizaweis/accounting:^1.0.1
 ```
+
+Use **1.0.1** or newer (Laravel 13, single-tenant, MySQL fixes in **1.0.2**). Tag **1.0.0** only supports Laravel 11.
 
 Laravel auto-discovers `Abdiaziizaweis\Accounting\AccountingServiceProvider`.
 
@@ -347,7 +349,10 @@ php artisan accounting:bootstrap
     {--force : Re-apply default document mappings when they already exist}
     {--organization-id= : Organization ID (CLI when HTTP context is not resolved)}
     {--branch-id= : Branch ID (CLI when HTTP context is not resolved)}
+    {--user-id= : Optional owner user ID for seeded rows (CLI; no login required)}
 ```
+
+**CLI auth:** Bootstrap does **not** require a logged-in user. `owner_user_id` on seeded rows is null unless you pass `--user-id=` or run bootstrap from an authenticated HTTP request.
 
 **Does:**
 
@@ -482,6 +487,10 @@ Purchase split: DR inventory (net); DR tax receivable; CR purchase discounts; CR
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
 | Transactions stay `not_mapped` | No mapping row or disabled mapping | Register `DocumentRegistry` + bootstrap; upsert mappings; check `is_enabled` |
+| Bootstrap **Unauthenticated** in CLI | Old package called `user()` without session | Upgrade to **1.0.2+**; optional `--user-id=` |
+| Migration FK/index on `drop_reconcile` | Index dropped before FK (MySQL) | Upgrade to **1.0.2+** (fixed migration order) |
+| Migration `permissions` table missing | Host without Spatie | Upgrade to **1.0.2+** (migration skips optional tables) |
+| Migration identifier too long (PM sides) | MySQL 64-char FK names | Upgrade to **1.0.2+** (`acct_pm_side_map_fk`) |
 | Bootstrap “Organization/Branch required” | CLI without context | Pass `--organization-id` / `--branch-id` |
 | 401/422 on API | Auth middleware or org/branch missing | Match `accounting.middleware` to your guard; set branch header; check `tenancy_mode` |
 | 403 on endpoints | Missing permission | Define Gates / `$user->can()` / custom `AccountingAuthInterface` for permission names above |

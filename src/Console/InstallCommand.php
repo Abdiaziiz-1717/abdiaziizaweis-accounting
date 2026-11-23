@@ -73,6 +73,7 @@ class InstallCommand extends Command
             return $migrateExit;
         }
         $this->components->info('✔ Migrations ran');
+        $this->line('  MySQL/MariaDB: use package 1.0.2+ for FK-safe migrations; set tenancy_mode before first migrate.');
 
         $bootstrapArgs = ['--force' => false];
         if ($organizationId !== null) {

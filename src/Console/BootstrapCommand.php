@@ -16,7 +16,8 @@ class BootstrapCommand extends Command
     protected $signature = 'accounting:bootstrap
                             {--force : Re-apply default document mappings when they already exist}
                             {--organization-id= : Organization ID (CLI when HTTP context is not resolved)}
-                            {--branch-id= : Branch ID (CLI when HTTP context is not resolved)}';
+                            {--branch-id= : Branch ID (CLI when HTTP context is not resolved)}
+                            {--user-id= : Owner user ID for seeded rows (optional; no login required in CLI)}';
 
     protected $description = 'Bootstrap chart of accounts and default accounting mappings for the current context';
 
@@ -31,7 +32,7 @@ class BootstrapCommand extends Command
 
             $this->info('Single tenant mode: seeding global chart of accounts');
 
-            $ownerUserId = app(AccountingAuthInterface::class)->user()?->id;
+            $ownerUserId = $this->optionalOwnerUserId();
             $beforeAccounts = $this->accountCount(0, 0);
             $beforeMaps = $this->mappingCount(0, 0);
 
@@ -86,7 +87,7 @@ class BootstrapCommand extends Command
             $branchId = $branchId !== null ? (int) $branchId : 0;
         }
 
-        $ownerUserId = app(AccountingAuthInterface::class)->user()?->id;
+        $ownerUserId = $this->optionalOwnerUserId();
 
         $beforeAccounts = $this->accountCount($orgId, $branchId);
         $beforeMaps = $this->mappingCount($orgId, $branchId);
@@ -145,5 +146,17 @@ class BootstrapCommand extends Command
         }
 
         return (int) $query->count();
+    }
+
+    protected function optionalOwnerUserId(): ?int
+    {
+        $userIdOption = $this->option('user-id');
+        if ($userIdOption !== null && $userIdOption !== '') {
+            return (int) $userIdOption;
+        }
+
+        $id = app(AccountingAuthInterface::class)->userOrNull()?->id;
+
+        return $id !== null ? (int) $id : null;
     }
 }

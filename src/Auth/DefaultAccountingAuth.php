@@ -24,4 +24,11 @@ class DefaultAccountingAuth implements AccountingAuthInterface
 
         return $user;
     }
+
+    public function userOrNull(): ?Authenticatable
+    {
+        $user = auth()->user();
+
+        return $user instanceof Authenticatable ? $user : null;
+    }
 }

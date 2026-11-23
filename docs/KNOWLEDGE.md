@@ -60,7 +60,7 @@ Host apps integrate by implementing `AccountingDocumentInterface` and registerin
 
 **Supported stack:** PHP `^8.2` with Laravel `^11.0`, `^12.0`, or `^13.0` (see `composer.json`). Laravel 13 applications typically require PHP 8.3+ per the framework; this package remains installable on PHP 8.2 when used with Laravel 11 or 12.
 
-1. `composer require abdiaziizaweis/accounting`
+1. `composer require abdiaziizaweis/accounting:^1.0.1` (use **1.0.2+** for MySQL + CLI bootstrap fixes; avoid **1.0.0** on Laravel 13)
 2. `php artisan accounting:install` **or** publish config + `migrate` + `accounting:bootstrap`
 3. Register `DocumentRegistry::register(...)` entries in `AppServiceProvider::boot()`
 4. Re-run `php artisan accounting:bootstrap [--force]` after new registry entries
@@ -69,6 +69,21 @@ Host apps integrate by implementing `AccountingDocumentInterface` and registerin
 7. Optional: override `AccountingContextInterface` / `AccountingAuthInterface` in app `AppServiceProvider::register()`
 
 Published tags: `accounting-config`, `accounting-migrations`.
+
+**MySQL / MariaDB**
+
+Tested on MySQL 8 / MariaDB 10.x. Set `tenancy_mode` in config **before** the first `migrate` (especially `single_tenant`). If a partial migration failed, fix the package version then run `php artisan migrate` again — reconcile-drop and payment-method-side migrations in **1.0.2+** are idempotent for common MySQL FK/index ordering issues.
+
+**`accounting:bootstrap` in CLI**
+
+Does not require login. Optional `owner_user_id` on seeded rows: pass `--user-id=` or rely on `AccountingAuthInterface::userOrNull()` when a web guard session exists. HTTP `POST …/bootstrap` still requires your auth middleware.
+
+**First-host checklist** (no organizations/branches/Spatie)
+
+1. `accounting.tenancy_mode` = `single_tenant` before first migrate  
+2. Define Laravel `Gate::define()` (or similar) for accounting permission strings — default is deny without Gates  
+3. Register **purchase** invoice/payment in `DocumentRegistry` if you use AP (builtin registry is sales/service/parts only)  
+4. `php artisan accounting:bootstrap` (no session); `--user-id=1` only if you want ownership stamped on seeds  
 
 **Default middleware stack**
 
@@ -428,6 +443,11 @@ All GET under `/reports/...` with `view accounting reports`.
 
 ## 18. Troubleshooting
 
+- **Bootstrap Unauthenticated (CLI):** Use package **1.0.2+** and `userOrNull()`; pass `--user-id=` optionally. Do not call `user()` from Artisan without a session.
+- **MySQL `acct_jel_rec_idx` / FK drop:** Upgrade **1.0.2+** — foreign key `acct_jel_rec_fk` is dropped before indexes.
+- **MySQL `permissions` table missing:** Upgrade **1.0.2+** — reconcile permission cleanup is skipped when Spatie is not installed.
+- **MySQL FK name too long on payment method sides:** Upgrade **1.0.2+** — uses `acct_pm_side_map_fk`.
+- **Wrong COGS `key_name` in `getJournalLines()`:** Seeded account is **`cost_of_sales`** (not `cost_of_goods_sold`). See `AccountingCoaSeeder`.
 - **No mappings after bootstrap:** `DocumentRegistry` empty at bootstrap time → register then `--force` bootstrap.
 - **CoA key missing:** `default_debit`/`default_credit` must match seeded `key_name`.
 - **Context 422:** Branch/org not resolved — headers, user fields, or CLI flags.
@@ -698,7 +718,7 @@ public function getJournalLines(): ?array
         JournalLine::debit('accounts_receivable', $this->total_with_tax),
         JournalLine::credit('sales_revenue', $this->subtotal),
         JournalLine::credit('tax_payable', $this->tax_amount),
-        JournalLine::debit('cost_of_goods_sold', $this->cost),
+        JournalLine::debit('cost_of_sales', $this->cost),
         JournalLine::credit('inventory_asset', $this->cost),
     ];
 }
@@ -735,7 +755,9 @@ public function getJournalLines(): ?array
 
 ### Common `key_name` values
 
-`accounts_receivable`, `accounts_payable`, `cash_and_cash_equivalents`, `bank`, `sales_revenue`, `service_revenue`, `parts_revenue`, `inventory_asset`, `cost_of_goods_sold`, `tax_payable`, `tax_receivable`, `payroll_expenses`, `salary_advances`, `customer_deposits`, `inter_branch_due`.
+`accounts_receivable`, `accounts_payable`, `cash_and_cash_equivalents`, `bank`, `sales_revenue`, `service_revenue`, `parts_revenue`, `inventory_asset`, `cost_of_sales` (COGS), `purchase_discounts`, `tax_payable`, `tax_receivable`, `payroll_expenses`, `salary_advances`, `customer_deposits`, `inter_branch_due`.
+
+Alias note: use **`cost_of_sales`** — that is the canonical `key_name` from bootstrap. `cost_of_goods_sold` is not seeded.
 
 ### Registry flag
 
