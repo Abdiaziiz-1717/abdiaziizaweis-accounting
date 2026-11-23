@@ -166,6 +166,8 @@ Optional: `getPaymentMethodId()`, `getExpenseCategoryId()`, `getOwnerUserId()`.
 
 ## 8. Manual bridge usage
 
+If you are building a Blade app, you can inject services directly into controllers — see [BLADE_INTEGRATION.md](./BLADE_INTEGRATION.md) for complete examples.
+
 `Abdiaziizaweis\Accounting\Services\AccountingDocumentBridge`:
 
 - `record(AccountingDocumentInterface $document)` — try/catch logged unless internal rethrow

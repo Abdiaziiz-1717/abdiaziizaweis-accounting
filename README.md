@@ -78,6 +78,24 @@ Pick the guard/middleware your app already uses:
 
 ---
 
+## Usage Patterns
+
+### SPA / API-first (React, Vue, Next.js frontend)
+
+Use the built-in HTTP API under `api/v1/accounting` (or your `route_prefix`). Set `accounting.middleware` to `auth:sanctum`, `auth:api`, or your API guard.
+
+### Traditional Blade app
+
+Inject package services directly into your controllers (`AccountingDocumentBridge`, `AccountingReportService`, `AccountingTransactionService`, etc.). Use session auth (`auth`) on your web routes; Sanctum is not required for server-rendered pages.
+
+See [docs/BLADE_INTEGRATION.md](docs/BLADE_INTEGRATION.md) for examples.
+
+### External app / microservice
+
+Deploy the package inside a Laravel app and call the HTTP API from any client language. See [docs/KNOWLEDGE.md](docs/KNOWLEDGE.md) §2 for architecture.
+
+---
+
 ## What this package does
 
 1. **Chart of accounts** — Hierarchical accounts per org/branch with stable `key_name` identifiers (seeded by bootstrap).
@@ -486,6 +504,7 @@ Purchase split: DR inventory (net); DR tax receivable; CR purchase discounts; CR
 | [README](https://github.com/Abdiaziiz-1717/abdiaziizaweis-accounting/blob/main/README.md) | Installation and quick start |
 | [KNOWLEDGE.md](https://github.com/Abdiaziiz-1717/abdiaziizaweis-accounting/blob/main/docs/KNOWLEDGE.md) | Complete technical reference for developers and AI agents |
 | [EXAMPLE_INTEGRATION.md](https://github.com/Abdiaziiz-1717/abdiaziizaweis-accounting/blob/main/docs/EXAMPLE_INTEGRATION.md) | Full working integration example |
+| [BLADE_INTEGRATION.md](https://github.com/Abdiaziiz-1717/abdiaziizaweis-accounting/blob/main/docs/BLADE_INTEGRATION.md) | Blade / direct service injection (no API required) |
 
 ## Repository Structure
 
@@ -495,7 +514,8 @@ abdiaziizaweis-accounting/
 ├── database/migrations/        # Accounting tables (auto-loaded)
 ├── docs/
 │   ├── KNOWLEDGE.md            # Full technical + API reference
-│   └── EXAMPLE_INTEGRATION.md  # End-to-end host app example
+│   ├── EXAMPLE_INTEGRATION.md  # End-to-end host app example
+│   └── BLADE_INTEGRATION.md    # Blade / direct service usage
 ├── routes/api.php              # HTTP routes (prefix + middleware from config)
 ├── stubs/accounting.php.stub   # Template written by accounting:install
 └── src/
