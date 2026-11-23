@@ -316,6 +316,8 @@ Accounting
 
 Module tabs: build from `GET /registry/documents` (group by `module`). Each row: human label (`document_type`), **enable**, **debit account**, **credit account**. Save per tab or batch upsert.
 
+When `uses_custom_lines` is **true** (or `posting_mode` = `custom_lines`), show **Managed in code** — hide debit/credit editors; journal lines come from the host’s `getJournalLines()` implementation.
+
 #### 2.12.2 Payment Method Mappings
 
 List host **payment methods** merged with `GET /payment-method-mappings`. Per method: enable, debit/credit (legacy sales/purchase columns and/or **module sides** via sides API). MAAMUUS uses sales/purchase pairs; package supports arbitrary **module** sides.

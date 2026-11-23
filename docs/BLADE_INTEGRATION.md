@@ -124,6 +124,8 @@ Default tenancy for new installs is `single_tenant` (no `organizations` / `branc
 
 ---
 
+For documents with complex accounting (COGS, tax, payroll deductions), implement **`getJournalLines()`** on your model instead of relying on two-account mapping. Return `null` to keep mapping mode. See [KNOWLEDGE.md §23](KNOWLEDGE.md).
+
 ## Setting up permissions for Blade apps
 
 Package permission names (e.g. `view accounting reports`) are checked via `AccountingAuthInterface::can()` when you use package HTTP routes or `AccountingPermissionMiddleware` on your own routes.

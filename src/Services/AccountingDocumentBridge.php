@@ -31,6 +31,7 @@ class AccountingDocumentBridge
     public function __construct(
         protected AccountingTransactionService $transactions,
         protected AccountingMappingResolver $resolver,
+        protected JournalLineResolver $journalLineResolver,
     ) {}
 
     /**
@@ -92,6 +93,16 @@ class AccountingDocumentBridge
             $expenseCategoryId = $document->getExpenseCategoryId();
             if ($expenseCategoryId) {
                 $attrs['expense_category_id'] = (int) $expenseCategoryId;
+            }
+
+            $customLines = $document->getJournalLines();
+            if ($customLines !== null) {
+                $attrs['auto_map'] = false;
+                $tx = $this->transactions->recordTransaction($document, $attrs);
+                $resolvedLines = $this->journalLineResolver->resolve($customLines, $type);
+                $this->transactions->mapWithLines($tx, $resolvedLines);
+
+                return;
             }
 
             if ($type === 'inventory_adjustment') {

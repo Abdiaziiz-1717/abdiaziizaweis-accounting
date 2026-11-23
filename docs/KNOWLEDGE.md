@@ -162,8 +162,11 @@ All methods are required on the host adapter (signatures on the interface; defau
 | `getExpenseCategoryId()` | Expense-category mapping; **`null`** for non-expenses |
 | `getOwnerUserId()` | Transaction owner; **`null`** → authenticated user from context |
 | `getPaymentSide()` | PM side key (`sales`, `purchase`, `expenses`, …); default = `getDocumentModule()` |
+| `getJournalLines()` | **`null`** → mapping mode; **non-null `JournalLine[]`** → custom multi-line JE (see §23) |
 
-**`HasDefaultDocumentMethods` trait** — included by **`HasAccountingDocument`**. Returns `null` / `null` / `null` / `getDocumentModule()` for the four optional methods. **If you use `HasAccountingDocument`, defaults are already included — only override what you need** (e.g. `getPaymentMethodId()` on payment models, `getExpenseCategoryId()` on expenses, `getPaymentSide(): 'purchase'` on purchase payments).
+**`HasDefaultDocumentMethods` trait** — included by **`HasAccountingDocument`**. Defaults: `null` payment/expense/owner, `getPaymentSide()` = `getDocumentModule()`, **`getJournalLines()` = `null`**. Override only what you need.
+
+**`getJournalLines()`** — When you return a balanced array of `Abdiaziizaweis\Accounting\ValueObjects\JournalLine` objects, `AccountingDocumentBridge` resolves `key_name` → account id, validates balance, and calls `mapWithLines()`. Document mapping, payment-method mapping, and automatic tax/discount splitting are **skipped**. When you return `null`, behavior is unchanged (mapping + splits).
 
 ---
 
@@ -660,6 +663,87 @@ class CustomProfitAndLossReport implements AccountingReportInterface
 ```
 
 `handle()` must return an `array`. Custom report controllers wrap the result in the standard `{ success, message, data }` envelope.
+
+---
+
+## 23. Multi-line journal entries
+
+### Two posting modes
+
+**Mode 1 — Automatic mapping (default)**  
+`getJournalLines()` returns `null`. Debit/credit come from the mapping table (and payment method / expense category when applicable). Tax/discount splitting applies when configured. Best for simple documents and admin-configured mappings.
+
+**Mode 2 — Custom lines (full control)**  
+`getJournalLines()` returns at least two `JournalLine` instances. The package validates balance, resolves `accountKey` (`key_name`) via `JournalLineResolver`, and posts via `AccountingTransactionService::mapWithLines()`. Tax/discount splitting and mapping lookup are **not** used — the document owns the full entry.
+
+### `JournalLine` helpers
+
+```php
+use Abdiaziizaweis\Accounting\ValueObjects\JournalLine;
+
+JournalLine::debit('accounts_receivable', 100.00, 'Invoice total');
+JournalLine::credit('sales_revenue', 80.00);
+JournalLine::debitById(42, 50.00);
+JournalLine::creditById(43, 50.00);
+```
+
+### Examples
+
+**Sale with COGS and tax (5 lines):**
+
+```php
+public function getJournalLines(): ?array
+{
+    return [
+        JournalLine::debit('accounts_receivable', $this->total_with_tax),
+        JournalLine::credit('sales_revenue', $this->subtotal),
+        JournalLine::credit('tax_payable', $this->tax_amount),
+        JournalLine::debit('cost_of_goods_sold', $this->cost),
+        JournalLine::credit('inventory_asset', $this->cost),
+    ];
+}
+```
+
+**Payroll with deductions (6 lines):**
+
+```php
+public function getJournalLines(): ?array
+{
+    return [
+        JournalLine::debit('payroll_expenses', $this->gross),
+        JournalLine::credit('cash_and_cash_equivalents', $this->net),
+        JournalLine::credit('tax_payable', $this->tax),
+        JournalLine::credit('pension_payable', $this->pension),
+        JournalLine::credit('health_insurance_payable', $this->health),
+        JournalLine::credit('union_dues_payable', $this->union),
+    ];
+}
+```
+
+**Simple mapping mode:**
+
+```php
+public function getJournalLines(): ?array
+{
+    return null;
+}
+```
+
+### Balance validation
+
+`UnbalancedJournalLinesException` is thrown when debits ≠ credits (tolerance 0.005) after resolution. Message includes document type, totals, and difference. Fix amounts in `getJournalLines()` or add missing offsetting lines.
+
+### Common `key_name` values
+
+`accounts_receivable`, `accounts_payable`, `cash_and_cash_equivalents`, `bank`, `sales_revenue`, `service_revenue`, `parts_revenue`, `inventory_asset`, `cost_of_goods_sold`, `tax_payable`, `tax_receivable`, `payroll_expenses`, `salary_advances`, `customer_deposits`, `inter_branch_due`.
+
+### Registry flag
+
+`DocumentRegistry::register(..., usesCustomLines: true)` sets `posting_mode: custom_lines` on `GET /registry/documents` so mapping UIs can show **Managed in code** (no debit/credit dropdowns).
+
+### Manual API
+
+`POST {prefix}/journal-entries` already accepts `lines` with `min:2` and balance validation via `AccountingJournalService::assertBalanced()`.
 
 ---
 

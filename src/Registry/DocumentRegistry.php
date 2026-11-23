@@ -20,7 +20,8 @@ class DocumentRegistry
      *     default_debit: string,
      *     default_credit: string,
      *     has_tax: bool,
-     *     has_discount: bool
+     *     has_discount: bool,
+     *     uses_custom_lines: bool
      * }>
      */
     protected static array $documents = [];
@@ -35,15 +36,17 @@ class DocumentRegistry
      * @param  string  $defaultCredit  CoA account `key_name` for the default credit side.
      * @param  bool  $hasTax  Hint for UIs; invoice types may use tax splitting when configured.
      * @param  bool  $hasDiscount  Hint for UIs; invoice types may use discount splitting.
+     * @param  bool  $usesCustomLines  When true, UI treats mapping as "Managed in code" ({@see AccountingDocumentInterface::getJournalLines()}).
      */
     public static function register(
         string $module,
         string $documentType,
         string $label,
-        string $defaultDebit,
-        string $defaultCredit,
+        string $defaultDebit = 'accounts_receivable',
+        string $defaultCredit = 'uncategorised_income',
         bool $hasTax = false,
         bool $hasDiscount = false,
+        bool $usesCustomLines = false,
     ): void {
         $key = self::key($module, $documentType);
 
@@ -55,6 +58,7 @@ class DocumentRegistry
             'default_credit' => $defaultCredit,
             'has_tax' => $hasTax,
             'has_discount' => $hasDiscount,
+            'uses_custom_lines' => $usesCustomLines,
         ];
     }
 
@@ -66,7 +70,8 @@ class DocumentRegistry
      *     default_debit: string,
      *     default_credit: string,
      *     has_tax: bool,
-     *     has_discount: bool
+     *     has_discount: bool,
+     *     uses_custom_lines: bool
      * }>
      */
     public static function all(): array
@@ -84,7 +89,8 @@ class DocumentRegistry
      *     default_debit: string,
      *     default_credit: string,
      *     has_tax: bool,
-     *     has_discount: bool
+     *     has_discount: bool,
+     *     uses_custom_lines: bool
      * }|null
      */
     public static function find(string $module, string $documentType): ?array
@@ -102,7 +108,8 @@ class DocumentRegistry
      *     default_debit: string,
      *     default_credit: string,
      *     has_tax: bool,
-     *     has_discount: bool
+     *     has_discount: bool,
+     *     uses_custom_lines: bool
      * }>>
      */
     public static function allGroupedByModule(): array

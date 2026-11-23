@@ -66,6 +66,10 @@ class AccountingMappingSeeder
                     continue;
                 }
 
+                if (! empty($row['uses_custom_lines'])) {
+                    continue;
+                }
+
                 $debit = $require($row['default_debit']);
                 $credit = $require($row['default_credit']);
                 $this->upsertDocument(

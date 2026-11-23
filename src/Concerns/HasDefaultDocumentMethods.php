@@ -27,4 +27,12 @@ trait HasDefaultDocumentMethods
     {
         return $this->getDocumentModule();
     }
+
+    /**
+     * @return list<\Abdiaziizaweis\Accounting\ValueObjects\JournalLine>|null
+     */
+    public function getJournalLines(): ?array
+    {
+        return null;
+    }
 }

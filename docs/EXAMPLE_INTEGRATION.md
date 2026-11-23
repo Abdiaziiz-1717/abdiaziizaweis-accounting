@@ -161,11 +161,81 @@ GET /api/v1/accounting/transactions/unmapped
 
 ---
 
+## 4. Multi-line journal entries (`getJournalLines`)
+
+Register documents that always use custom lines:
+
+```php
+DocumentRegistry::register(
+    'sales',
+    'invoice',
+    'Vehicle sale (COGS)',
+    'accounts_receivable',
+    'sales_revenue',
+    hasTax: true,
+    usesCustomLines: true,
+);
+```
+
+### `SaleDocument` — 4 lines (AR, revenue, COGS, inventory)
+
+```php
+use Abdiaziizaweis\Accounting\ValueObjects\JournalLine;
+
+public function getJournalLines(): ?array
+{
+    return [
+        JournalLine::debit('accounts_receivable', $this->total),
+        JournalLine::credit('sales_revenue', $this->subtotal),
+        JournalLine::debit('cost_of_goods_sold', $this->cost),
+        JournalLine::credit('inventory_asset', $this->cost),
+    ];
+}
+```
+
+### `SaleDocument` — 5 lines (add tax)
+
+Add `JournalLine::credit('tax_payable', $this->tax)` and increase the AR debit to `$this->total_with_tax`.
+
+### `ServiceOrder` — 3 lines (AR, revenue, tax)
+
+```php
+return [
+    JournalLine::debit('accounts_receivable', $this->total),
+    JournalLine::credit('service_revenue', $this->subtotal),
+    JournalLine::credit('tax_payable', $this->tax),
+];
+```
+
+### `PartsInvoice` — mapping mode
+
+```php
+public function getJournalLines(): ?array
+{
+    return null; // simple AR / parts_revenue from mapping table
+}
+```
+
+### `PayrollRun` — 5 lines
+
+```php
+return [
+    JournalLine::debit('payroll_expenses', $this->gross),
+    JournalLine::credit('cash_and_cash_equivalents', $this->net),
+    JournalLine::credit('tax_payable', $this->withholding),
+    JournalLine::credit('pension_payable', $this->pension),
+    JournalLine::credit('health_insurance_payable', $this->health),
+];
+```
+
+---
+
 ## Checklist
 
 1. `composer require abdiaziizaweis/accounting`, `accounting:install`, `accounting:bootstrap`
 2. Models implement `AccountingDocumentInterface` + `HasAccountingDocument`
 3. Override `getPaymentMethodId`, `getExpenseCategoryId`, `getPaymentSide` only when needed
-4. Register extra `DocumentRegistry` rows before bootstrap
-5. Permissions assigned to sales/accounting roles
-6. Poll `GET /health` after go-live
+4. Use `getJournalLines()` for COGS / payroll / complex tax when mapping is not enough
+5. Register `DocumentRegistry` rows; set `usesCustomLines: true` for code-managed types
+6. Permissions assigned to sales/accounting roles
+7. Poll `GET /health` after go-live

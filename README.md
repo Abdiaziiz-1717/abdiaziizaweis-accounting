@@ -102,8 +102,22 @@ Deploy the package inside a Laravel app and call the HTTP API from any client la
 8. **Period controls** — Close books through `closing_date`; posting, voiding, journals, and transfers are blocked for dates on or before the close (see `AccountingPeriodGuard`).
 9. **Pluggable audit logging** — Implement `AccountingAuditInterface` (or use `NullAccountingAudit` / `SpatieAccountingAudit`) so host apps can record audit events for transactions, journals, and transfers.
 10. **Extensible reports** — Register custom reports or override built-in ones via `AccountingReportRegistry` without editing package source.
+11. **Dynamic multi-line journal entries** — Documents implement `getJournalLines()` with `JournalLine` value objects for COGS, payroll, multi-tax, or any N-line posting (see [KNOWLEDGE.md §23](docs/KNOWLEDGE.md)).
 
 **Payment methods are optional** on all document types — when `getPaymentMethodId()` is null, auto-map falls back to **document mapping** (`module` + `document_type`).
+
+```php
+use Abdiaziizaweis\Accounting\ValueObjects\JournalLine;
+
+public function getJournalLines(): ?array
+{
+    return [
+        JournalLine::debit('accounts_receivable', $this->total),
+        JournalLine::credit('sales_revenue', $this->subtotal),
+        JournalLine::credit('tax_payable', $this->tax),
+    ];
+}
+```
 
 
 ## Installation

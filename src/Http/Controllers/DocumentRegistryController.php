@@ -31,11 +31,15 @@ class DocumentRegistryController extends Controller
             foreach ($documents as $document) {
                 $mapping = $mappings[self::mappingKey($module, $document['document_type'])] ?? null;
 
+                $usesCustomLines = (bool) ($document['uses_custom_lines'] ?? false);
+
                 $enriched[] = array_merge($document, [
+                    'uses_custom_lines' => $usesCustomLines,
+                    'posting_mode' => $usesCustomLines ? 'custom_lines' : 'mapping',
                     'is_mapped' => $mapping !== null,
-                    'debit_account_id' => $mapping?->debit_account_id,
-                    'credit_account_id' => $mapping?->credit_account_id,
-                    'is_enabled' => $mapping !== null ? (bool) $mapping->is_enabled : false,
+                    'debit_account_id' => $usesCustomLines ? null : $mapping?->debit_account_id,
+                    'credit_account_id' => $usesCustomLines ? null : $mapping?->credit_account_id,
+                    'is_enabled' => $usesCustomLines ? true : ($mapping !== null ? (bool) $mapping->is_enabled : false),
                     'has_payment_method_mapping_side' => isset($paymentMethodModules[strtolower($module)]),
                 ]);
             }

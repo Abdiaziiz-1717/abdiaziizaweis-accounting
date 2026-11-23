@@ -2,6 +2,7 @@
 
 namespace Abdiaziizaweis\Accounting\Contracts;
 
+use Abdiaziizaweis\Accounting\ValueObjects\JournalLine;
 use Illuminate\Support\Carbon;
 
 /**
@@ -96,4 +97,17 @@ interface AccountingDocumentInterface
      * Defaults to {@see getDocumentModule()} on models using {@see \Abdiaziizaweis\Accounting\Concerns\HasDefaultDocumentMethods}.
      */
     public function getPaymentSide(): string;
+
+    /**
+     * Custom journal lines for this document (multi-line posting).
+     *
+     * When this returns a non-null array, the package posts exactly these lines
+     * instead of document / payment-method mapping or automatic tax/discount splitting.
+     * Return null to use mapping mode (default).
+     *
+     * Rules: at least 2 lines, balanced debits/credits, each line is a {@see JournalLine}.
+     *
+     * @return list<JournalLine>|null
+     */
+    public function getJournalLines(): ?array;
 }
