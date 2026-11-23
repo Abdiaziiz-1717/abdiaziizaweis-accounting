@@ -1,5 +1,7 @@
 # abdiaziizaweis/accounting — Complete Reference
 
+For UI implementation guidance see [UI_STRUCTURE.md](UI_STRUCTURE.md).
+
 ## 1. What this package is
 
 Composer package **`abdiaziizaweis/accounting`** (`Abdiaziizaweis\Accounting`) for **Laravel 11, 12, or 13** / **PHP 8.2+**. It provides:

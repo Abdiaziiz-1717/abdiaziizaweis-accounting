@@ -8,6 +8,7 @@ in this exact order before writing any code:
 1. This README (you are here) — installation and quick start
 2. Full knowledge base: https://raw.githubusercontent.com/Abdiaziiz-1717/abdiaziizaweis-accounting/main/docs/KNOWLEDGE.md
 3. Complete integration example: https://raw.githubusercontent.com/Abdiaziiz-1717/abdiaziizaweis-accounting/main/docs/EXAMPLE_INTEGRATION.md
+4. UI structure reference: https://raw.githubusercontent.com/Abdiaziiz-1717/abdiaziizaweis-accounting/main/docs/UI_STRUCTURE.md
 
 The KNOWLEDGE.md file contains:
 - Full database schema (every table and column)
@@ -505,6 +506,7 @@ Purchase split: DR inventory (net); DR tax receivable; CR purchase discounts; CR
 | [KNOWLEDGE.md](https://github.com/Abdiaziiz-1717/abdiaziizaweis-accounting/blob/main/docs/KNOWLEDGE.md) | Complete technical reference for developers and AI agents |
 | [EXAMPLE_INTEGRATION.md](https://github.com/Abdiaziiz-1717/abdiaziizaweis-accounting/blob/main/docs/EXAMPLE_INTEGRATION.md) | Full working integration example |
 | [BLADE_INTEGRATION.md](https://github.com/Abdiaziiz-1717/abdiaziizaweis-accounting/blob/main/docs/BLADE_INTEGRATION.md) | Blade / direct service injection (no API required) |
+| [UI_STRUCTURE.md](https://github.com/Abdiaziiz-1717/abdiaziizaweis-accounting/blob/main/docs/UI_STRUCTURE.md) | UI pages reference and framework examples |
 
 ## Repository Structure
 
