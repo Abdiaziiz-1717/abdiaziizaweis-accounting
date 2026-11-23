@@ -4,6 +4,7 @@ namespace Abdiaziizaweis\Accounting\Services;
 
 use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
 use Abdiaziizaweis\Accounting\Exceptions\AccountingPeriodClosedException;
+use Abdiaziizaweis\Accounting\Database\Migration\TenancySchemaHelper;
 use Abdiaziizaweis\Accounting\Models\AccountingBranchSetting;
 use Illuminate\Support\Carbon;
 
@@ -45,12 +46,16 @@ class AccountingPeriodGuard
 
         $query = AccountingBranchSetting::withoutGlobalScopes();
 
-        if ($branchId !== null && $branchId > 0) {
+        if (TenancySchemaHelper::usesBranchId() && $branchId !== null && $branchId > 0) {
             return $query->where('branch_id', $branchId)->first();
         }
 
-        if ($orgId > 0) {
+        if (TenancySchemaHelper::usesOrganizationId() && $orgId > 0) {
             return $query->where('organization_id', $orgId)->first();
+        }
+
+        if (TenancySchemaHelper::isSingleTenant()) {
+            return $query->orderBy('id')->first();
         }
 
         return null;

@@ -11,8 +11,11 @@ return [
     |
     | single_tenant | multi_tenant | multi_branch | multi_tenant_multi_branch
     |
+    | Start with single_tenant for simple apps.
+    | Change to multi_branch or multi_tenant_multi_branch only when you need
+    | multiple organizations or branches.
     */
-    'tenancy_mode' => 'multi_tenant_multi_branch',
+    'tenancy_mode' => 'single_tenant',
 
     'currency' => 'USD',
 

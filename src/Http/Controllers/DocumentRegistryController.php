@@ -5,6 +5,7 @@ namespace Abdiaziizaweis\Accounting\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Database\Migration\TenancySchemaHelper;
 use Abdiaziizaweis\Accounting\Models\AccountingDocumentMapping;
 use Abdiaziizaweis\Accounting\Models\AccountingPaymentMethodMappingSide;
 use Abdiaziizaweis\Accounting\Registry\DocumentRegistry;
@@ -58,10 +59,12 @@ class DocumentRegistryController extends Controller
      */
     protected function branchMappingsKeyed(int $organizationId, ?int $branchId): array
     {
-        $query = AccountingDocumentMapping::query()
-            ->where('organization_id', $organizationId);
+        $query = AccountingDocumentMapping::query();
 
-        if ($branchId !== null) {
+        if (TenancySchemaHelper::usesOrganizationId()) {
+            $query->where('organization_id', $organizationId);
+        }
+        if (TenancySchemaHelper::usesBranchId() && $branchId !== null) {
             $query->where('branch_id', $branchId);
         }
 
@@ -93,10 +96,10 @@ class DocumentRegistryController extends Controller
             ->whereNotNull('debit_account_id')
             ->whereNotNull('credit_account_id');
 
-        if ($organizationId) {
+        if (TenancySchemaHelper::usesOrganizationId() && $organizationId) {
             $query->where('organization_id', $organizationId);
         }
-        if ($branchId !== null) {
+        if (TenancySchemaHelper::usesBranchId() && $branchId !== null) {
             $query->where('branch_id', $branchId);
         }
 

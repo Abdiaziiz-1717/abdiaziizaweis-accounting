@@ -8,7 +8,12 @@ class TenancySchemaHelper
 {
     public static function mode(): string
     {
-        return (string) config('accounting.tenancy_mode', 'multi_tenant_multi_branch');
+        return (string) config('accounting.tenancy_mode', 'single_tenant');
+    }
+
+    public static function isSingleTenant(): bool
+    {
+        return self::mode() === 'single_tenant';
     }
 
     public static function usesOrganizationId(): bool

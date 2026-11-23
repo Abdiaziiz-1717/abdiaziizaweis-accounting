@@ -3,7 +3,7 @@
 namespace Abdiaziizaweis\Accounting\Services;
 
 use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
-
+use Abdiaziizaweis\Accounting\Database\Migration\TenancySchemaHelper;
 use Abdiaziizaweis\Accounting\Enums\AccountingModule;
 use Abdiaziizaweis\Accounting\Models\AccountingDocumentMapping;
 use Abdiaziizaweis\Accounting\Models\AccountingExpenseCategoryMapping;
@@ -38,16 +38,16 @@ class AccountingMappingResolver
         ?int $branchId = null
     ): ?array {
         $branchId = $branchId ?? app(AccountingContextInterface::class)->getBranchId();
-        if (! $branchId) {
+        if (TenancySchemaHelper::usesBranchId() && ! $branchId) {
             return null;
         }
 
         $moduleValue = $module instanceof AccountingModule ? $module->value : $module;
-        $cacheKey = $this->entryKey($branchId, 'doc', $moduleValue, $documentType);
+        $cacheKey = $this->entryKey((int) ($branchId ?? 0), 'doc', $moduleValue, $documentType);
 
         $payload = Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, function () use ($branchId, $moduleValue, $documentType) {
             $mapping = AccountingDocumentMapping::withoutGlobalScopes()
-                ->where('branch_id', $branchId)
+                ->when(TenancySchemaHelper::usesBranchId(), fn ($q) => $q->where('branch_id', $branchId))
                 ->where('module', $moduleValue)
                 ->where('document_type', $documentType)
                 ->where('is_enabled', true)
@@ -92,16 +92,16 @@ class AccountingMappingResolver
         ?int $branchId = null
     ): ?array {
         $branchId = $branchId ?? app(AccountingContextInterface::class)->getBranchId();
-        if (! $branchId) {
+        if (TenancySchemaHelper::usesBranchId() && ! $branchId) {
             return null;
         }
 
         $module = $this->normalizePaymentMethodModule($module);
-        $cacheKey = $this->entryKey($branchId, 'pm', (string) $paymentMethodId, $module);
+        $cacheKey = $this->entryKey((int) ($branchId ?? 0), 'pm', (string) $paymentMethodId, $module);
 
         $payload = Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, function () use ($branchId, $paymentMethodId, $module) {
             $mapping = AccountingPaymentMethodMapping::withoutGlobalScopes()
-                ->where('branch_id', $branchId)
+                ->when(TenancySchemaHelper::usesBranchId(), fn ($q) => $q->where('branch_id', $branchId))
                 ->where('payment_method_id', $paymentMethodId)
                 ->where('is_enabled', true)
                 ->first();
@@ -209,15 +209,15 @@ class AccountingMappingResolver
     public function resolveExpenseCategory(int $expenseCategoryId, ?int $branchId = null): ?array
     {
         $branchId = $branchId ?? app(AccountingContextInterface::class)->getBranchId();
-        if (! $branchId) {
+        if (TenancySchemaHelper::usesBranchId() && ! $branchId) {
             return null;
         }
 
-        $cacheKey = $this->entryKey($branchId, 'exp', (string) $expenseCategoryId, '-');
+        $cacheKey = $this->entryKey((int) ($branchId ?? 0), 'exp', (string) $expenseCategoryId, '-');
 
         $payload = Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, function () use ($branchId, $expenseCategoryId) {
             $mapping = AccountingExpenseCategoryMapping::withoutGlobalScopes()
-                ->where('branch_id', $branchId)
+                ->when(TenancySchemaHelper::usesBranchId(), fn ($q) => $q->where('branch_id', $branchId))
                 ->where('expense_category_id', $expenseCategoryId)
                 ->where('is_enabled', true)
                 ->first();

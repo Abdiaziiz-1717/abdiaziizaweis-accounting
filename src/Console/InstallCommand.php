@@ -133,8 +133,10 @@ class InstallCommand extends Command
         $tenancyMode = $this->choice(
             'Tenancy mode',
             array_keys($this->resolverMap),
-            'multi_tenant_multi_branch'
+            'single_tenant'
         );
+
+        $this->printTenancyModeGuidance($tenancyMode);
 
         $currency = (string) $this->ask('Default currency', 'USD');
 
@@ -171,6 +173,26 @@ class InstallCommand extends Command
             $organizationId,
             $branchId,
         ];
+    }
+
+    protected function printTenancyModeGuidance(string $tenancyMode): void
+    {
+        $this->newLine();
+
+        match ($tenancyMode) {
+            'single_tenant' => $this->line(
+                'Single tenant mode selected.'."\n".
+                'This mode requires NO organizations or branches tables.'."\n".
+                'Your accounting tables will have no tenant scoping.'."\n".
+                'Perfect for single-store or single-company applications.'
+            ),
+            'multi_tenant' => $this->line('Requires an organizations table with an id column.'),
+            'multi_branch' => $this->line('Requires a branches table with id and organization_id columns.'),
+            'multi_tenant_multi_branch' => $this->line('Requires both organizations and branches tables.'),
+            default => null,
+        };
+
+        $this->newLine();
     }
 
     /**

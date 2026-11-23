@@ -48,7 +48,7 @@ class AccountingServiceProvider extends ServiceProvider
 
         $this->app->bind(
             AccountingContextInterface::class,
-            match ((string) config('accounting.tenancy_mode', 'multi_tenant_multi_branch')) {
+            match ((string) config('accounting.tenancy_mode', 'single_tenant')) {
                 'multi_tenant' => MultiTenantContextResolver::class,
                 'multi_branch' => MultiBranchContextResolver::class,
                 'multi_tenant_multi_branch' => MultiTenantMultiBranchContextResolver::class,

@@ -20,18 +20,22 @@ class AccountingCoaSeeder
         ?int $ownerUserId = null
     ): void {
         DB::transaction(function () use ($organizationId, $branchId, $ownerUserId) {
-            $settingsKey = TenancySchemaHelper::usesBranchId()
-                ? ['branch_id' => $branchId]
-                : ['organization_id' => $organizationId];
+            $settingsKey = match (true) {
+                TenancySchemaHelper::usesBranchId() => ['branch_id' => $branchId],
+                TenancySchemaHelper::usesOrganizationId() => ['organization_id' => $organizationId],
+                default => [],
+            };
 
             $settingDefaults = [
-                'organization_id' => $organizationId,
                 'first_month_financial_year' => max(1, min(12, (int) config('accounting.fy_start', 1))),
                 'accounting_method' => 'accrual',
                 'close_the_books' => false,
                 'closing_date' => null,
                 'enable_account_numbers' => true,
             ];
+            if (TenancySchemaHelper::usesOrganizationId()) {
+                $settingDefaults['organization_id'] = $organizationId;
+            }
             if (TenancySchemaHelper::usesBranchId()) {
                 $settingDefaults['branch_id'] = $branchId;
             }
@@ -71,7 +75,6 @@ class AccountingCoaSeeder
                 }
 
                 $accountPayload = [
-                    'organization_id' => $organizationId,
                     'owner_user_id' => $ownerUserId,
                     'parent_id' => $parentId,
                     'name' => $name,
@@ -83,6 +86,9 @@ class AccountingCoaSeeder
                     'is_active' => true,
                     'is_default' => true,
                 ];
+                if (TenancySchemaHelper::usesOrganizationId()) {
+                    $accountPayload['organization_id'] = $organizationId;
+                }
                 if (TenancySchemaHelper::usesBranchId()) {
                     $accountPayload['branch_id'] = $branchId;
                 }
@@ -166,7 +172,7 @@ class AccountingCoaSeeder
             $settingsQuery = AccountingBranchSetting::withoutGlobalScopes();
             if (TenancySchemaHelper::usesBranchId()) {
                 $settingsQuery->where('branch_id', $branchId);
-            } else {
+            } elseif (TenancySchemaHelper::usesOrganizationId()) {
                 $settingsQuery->where('organization_id', $organizationId);
             }
             $settings = $settingsQuery->first();

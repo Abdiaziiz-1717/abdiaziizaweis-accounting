@@ -5,6 +5,7 @@ namespace Abdiaziizaweis\Accounting\Models\Concerns;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Database\Migration\TenancySchemaHelper;
 use Abdiaziizaweis\Accounting\Models\Scopes\AccountingContextScope;
 use RuntimeException;
 
@@ -18,6 +19,10 @@ trait BelongsToAccountingContext
         static::addGlobalScope(new AccountingContextScope);
 
         static::creating(function (Model $model) {
+            if (TenancySchemaHelper::isSingleTenant()) {
+                return;
+            }
+
             $context = app(AccountingContextInterface::class);
             $branchId = $context->getBranchId();
 
@@ -47,6 +52,10 @@ trait BelongsToAccountingContext
         });
 
         static::saving(function (Model $model) {
+            if (TenancySchemaHelper::isSingleTenant()) {
+                return;
+            }
+
             $orgId = $model->getAttribute('organization_id');
             $branchId = $model->getAttribute('branch_id');
 

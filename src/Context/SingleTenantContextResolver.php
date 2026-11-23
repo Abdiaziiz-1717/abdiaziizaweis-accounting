@@ -41,6 +41,6 @@ class SingleTenantContextResolver implements AccountingContextInterface
 
     public function getUserId(): int
     {
-        return $this->userId;
+        return (int) (auth()->id() ?? 1);
     }
 }

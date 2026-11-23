@@ -7,6 +7,7 @@ use Abdiaziizaweis\Accounting\Models\AccountingDocumentMapping;
 use Abdiaziizaweis\Accounting\Models\AccountingExpenseCategoryMapping;
 use Abdiaziizaweis\Accounting\Models\AccountingPaymentMethodMapping;
 use Abdiaziizaweis\Accounting\Models\AccountingPaymentMethodMappingSide;
+use Abdiaziizaweis\Accounting\Database\Migration\TenancySchemaHelper;
 use Abdiaziizaweis\Accounting\Registry\DocumentRegistry;
 use Illuminate\Support\Facades\DB;
 
@@ -80,6 +81,10 @@ class AccountingMappingSeeder
 
     protected function organizationIncludesSaasMaps(int $organizationId): bool
     {
+        if (! TenancySchemaHelper::usesOrganizationId()) {
+            return false;
+        }
+
         $orgClass = config('accounting.models.organization', \App\Models\Organization::class);
         if (! is_string($orgClass) || ! class_exists($orgClass)) {
             return false;
@@ -107,7 +112,11 @@ class AccountingMappingSeeder
         bool $force,
     ): void {
         $existing = AccountingDocumentMapping::withoutGlobalScopes()
-            ->where('branch_id', $branchId)
+            ->when(TenancySchemaHelper::usesBranchId(), fn ($q) => $q->where('branch_id', $branchId))
+            ->when(
+                ! TenancySchemaHelper::usesBranchId() && TenancySchemaHelper::usesOrganizationId(),
+                fn ($q) => $q->where('organization_id', $organizationId)
+            )
             ->where('module', $module)
             ->where('document_type', $documentType)
             ->first();
@@ -119,17 +128,15 @@ class AccountingMappingSeeder
         }
 
         AccountingDocumentMapping::withoutGlobalScopes()->updateOrCreate(
-            [
-                'branch_id' => $branchId,
+            $this->scopedUniqueKeys($organizationId, $branchId, [
                 'module' => $module,
                 'document_type' => $documentType,
-            ],
-            [
-                'organization_id' => $organizationId,
+            ]),
+            $this->scopedAttributes($organizationId, $branchId, [
                 'debit_account_id' => $debitAccountId,
                 'credit_account_id' => $creditAccountId,
                 'is_enabled' => true,
-            ]
+            ])
         );
     }
 
@@ -153,7 +160,10 @@ class AccountingMappingSeeder
         }
 
         $methods = $paymentMethodClass::withoutGlobalScopes()
-            ->where('organization_id', $organizationId)
+            ->when(
+                TenancySchemaHelper::usesOrganizationId(),
+                fn ($q) => $q->where('organization_id', $organizationId)
+            )
             ->when(
                 method_exists(new $paymentMethodClass, 'getDeletedAtColumn'),
                 fn ($q) => $q->whereNull('deleted_at')
@@ -168,7 +178,11 @@ class AccountingMappingSeeder
                 : $cashId;
 
             $existing = AccountingPaymentMethodMapping::withoutGlobalScopes()
-                ->where('branch_id', $branchId)
+                ->when(TenancySchemaHelper::usesBranchId(), fn ($q) => $q->where('branch_id', $branchId))
+                ->when(
+                    ! TenancySchemaHelper::usesBranchId() && TenancySchemaHelper::usesOrganizationId(),
+                    fn ($q) => $q->where('organization_id', $organizationId)
+                )
                 ->where('payment_method_id', $method->id)
                 ->first();
 
@@ -181,18 +195,16 @@ class AccountingMappingSeeder
             }
 
             $mapping = AccountingPaymentMethodMapping::withoutGlobalScopes()->updateOrCreate(
-                [
-                    'branch_id' => $branchId,
+                $this->scopedUniqueKeys($organizationId, $branchId, [
                     'payment_method_id' => $method->id,
-                ],
-                [
-                    'organization_id' => $organizationId,
+                ]),
+                $this->scopedAttributes($organizationId, $branchId, [
                     'sales_debit_account_id' => $moneyIn,
                     'sales_credit_account_id' => $arId,
                     'purchase_debit_account_id' => $apId,
                     'purchase_credit_account_id' => $moneyIn,
                     'is_enabled' => true,
-                ]
+                ])
             );
 
             $this->upsertPaymentMethodSide($mapping, 'sales', $moneyIn, $arId);
@@ -210,18 +222,24 @@ class AccountingMappingSeeder
             return;
         }
 
+        $attrs = [
+            'debit_account_id' => $debitId,
+            'credit_account_id' => $creditId,
+            'is_enabled' => (bool) $mapping->is_enabled,
+        ];
+        if (TenancySchemaHelper::usesOrganizationId()) {
+            $attrs['organization_id'] = $mapping->organization_id;
+        }
+        if (TenancySchemaHelper::usesBranchId()) {
+            $attrs['branch_id'] = $mapping->branch_id;
+        }
+
         AccountingPaymentMethodMappingSide::withoutGlobalScopes()->updateOrCreate(
             [
                 'payment_method_mapping_id' => $mapping->id,
                 'module' => $module,
             ],
-            [
-                'organization_id' => $mapping->organization_id,
-                'branch_id' => $mapping->branch_id,
-                'debit_account_id' => $debitId,
-                'credit_account_id' => $creditId,
-                'is_enabled' => (bool) $mapping->is_enabled,
-            ]
+            $attrs
         );
     }
 
@@ -254,7 +272,10 @@ class AccountingMappingSeeder
         }
 
         $categories = $expenseCategoryClass::withoutGlobalScopes()
-            ->where('organization_id', $organizationId)
+            ->when(
+                TenancySchemaHelper::usesOrganizationId(),
+                fn ($q) => $q->where('organization_id', $organizationId)
+            )
             ->when(
                 method_exists(new $expenseCategoryClass, 'getDeletedAtColumn'),
                 fn ($q) => $q->whereNull('deleted_at')
@@ -267,7 +288,11 @@ class AccountingMappingSeeder
             $debitId = $require($expenseKey);
 
             $existing = AccountingExpenseCategoryMapping::withoutGlobalScopes()
-                ->where('branch_id', $branchId)
+                ->when(TenancySchemaHelper::usesBranchId(), fn ($q) => $q->where('branch_id', $branchId))
+                ->when(
+                    ! TenancySchemaHelper::usesBranchId() && TenancySchemaHelper::usesOrganizationId(),
+                    fn ($q) => $q->where('organization_id', $organizationId)
+                )
                 ->where('expense_category_id', $category->id)
                 ->first();
 
@@ -280,17 +305,46 @@ class AccountingMappingSeeder
             }
 
             AccountingExpenseCategoryMapping::withoutGlobalScopes()->updateOrCreate(
-                [
-                    'branch_id' => $branchId,
+                $this->scopedUniqueKeys($organizationId, $branchId, [
                     'expense_category_id' => $category->id,
-                ],
-                [
-                    'organization_id' => $organizationId,
+                ]),
+                $this->scopedAttributes($organizationId, $branchId, [
                     'debit_account_id' => $debitId,
                     'credit_account_id' => $cashId,
                     'is_enabled' => true,
-                ]
+                ])
             );
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $keys
+     * @return array<string, mixed>
+     */
+    protected function scopedUniqueKeys(int $organizationId, int $branchId, array $keys): array
+    {
+        if (TenancySchemaHelper::usesBranchId()) {
+            $keys['branch_id'] = $branchId;
+        } elseif (TenancySchemaHelper::usesOrganizationId()) {
+            $keys['organization_id'] = $organizationId;
+        }
+
+        return $keys;
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @return array<string, mixed>
+     */
+    protected function scopedAttributes(int $organizationId, int $branchId, array $attributes): array
+    {
+        if (TenancySchemaHelper::usesOrganizationId()) {
+            $attributes['organization_id'] = $organizationId;
+        }
+        if (TenancySchemaHelper::usesBranchId()) {
+            $attributes['branch_id'] = $branchId;
+        }
+
+        return $attributes;
     }
 }

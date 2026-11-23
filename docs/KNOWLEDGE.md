@@ -83,14 +83,32 @@ Include `accounting.context` (alias for `ResolveAccountingContext`) whenever org
 
 ## 4. Tenancy modes
 
-| `accounting.tenancy_mode` | `TenancySchemaHelper::usesOrganizationId()` | `usesBranchId()` | Default resolver |
-|---------------------------|---------------------------------------------|------------------|------------------|
-| `single_tenant` | false | false | `SingleTenantContextResolver` |
-| `multi_tenant` | true | false | `MultiTenantContextResolver` |
-| `multi_branch` | false | true | `MultiBranchContextResolver` |
-| `multi_tenant_multi_branch` | true | true | `MultiTenantMultiBranchContextResolver` |
+| `accounting.tenancy_mode` | `usesOrganizationId()` | `usesBranchId()` | Default resolver | Host tables required |
+|---------------------------|------------------------|------------------|------------------|----------------------|
+| `single_tenant` | false | false | `SingleTenantContextResolver` | **None** — no `organizations` / `branches` |
+| `multi_tenant` | true | false | `MultiTenantContextResolver` | `organizations` (`id`) |
+| `multi_branch` | false | true | `MultiBranchContextResolver` | `branches` (`id`, `organization_id`) |
+| `multi_tenant_multi_branch` | true | true | `MultiTenantMultiBranchContextResolver` | Both `organizations` and `branches` |
 
-Branch resolution often uses request header (see `MultiBranchContextResolver`). Multi-tenant reads `organization_id` from authenticated user.
+**Which mode should I choose?**
+
+| Your app | Mode |
+|----------|------|
+| Single store / single company | `single_tenant` |
+| One company, multiple locations | `multi_branch` |
+| SaaS — many companies, one location each | `multi_tenant` |
+| SaaS — many companies, multiple branches each | `multi_tenant_multi_branch` |
+
+Default config is **`single_tenant`**. Complex tenancy is opt-in.
+
+**`single_tenant` behavior**
+
+- `SingleTenantContextResolver` is fixed: `organization_id = 1`, `branch_id = null`, `user_id = auth()->id() ?? 1` — **no database lookups**.
+- `AccountingContextScope` applies **no** org/branch filters.
+- `BelongsToAccountingContext` does not stamp or validate org/branch.
+- Migrations omit `organization_id` / `branch_id` from all accounting tables (run `migrate` with `tenancy_mode` set before first migration).
+
+Branch resolution in other modes often uses request header (see `MultiBranchContextResolver`). Multi-tenant reads `organization_id` from the authenticated user.
 
 Migrations add `organization_id` / `branch_id` columns only when the mode requires them.
 

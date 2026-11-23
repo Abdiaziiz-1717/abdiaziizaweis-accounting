@@ -115,8 +115,10 @@ This writes `config/accounting.php`, runs migrations, and runs `accounting:boots
 ```bash
 php artisan vendor:publish --tag=accounting-config
 php artisan migrate
-php artisan accounting:bootstrap --organization-id=1 --branch-id=1
+php artisan accounting:bootstrap
 ```
+
+For `multi_tenant` / `multi_branch` modes, pass `--organization-id` and/or `--branch-id` as required.
 
 ### 4. Permissions
 
@@ -136,11 +138,20 @@ Wire these into your RBAC (Gates, policies, Spatie Permission if installed, or a
 
 ## Tenancy modes
 
-Set `accounting.tenancy_mode` in config. This controls DB columns, context resolution, and bootstrap requirements.
+Set `accounting.tenancy_mode` in config (**default `single_tenant`**). This controls DB columns, context resolution, and bootstrap requirements. Set the mode **before** your first `migrate` so the schema matches.
+
+**Which mode should I choose?**
+
+| Your app | Mode |
+|----------|------|
+| Single store / single company | `single_tenant` — no `organizations` or `branches` tables |
+| One company, multiple locations | `multi_branch` |
+| SaaS, many companies, one location each | `multi_tenant` |
+| SaaS, many companies, multiple branches | `multi_tenant_multi_branch` |
 
 | Mode | Resolver | Org column | Branch column | Context |
 |------|----------|------------|---------------|---------|
-| `single_tenant` | `SingleTenantContextResolver` | No | No | Minimal |
+| `single_tenant` | `SingleTenantContextResolver` | No | No | Fixed context, no DB |
 | `multi_tenant` | `MultiTenantContextResolver` | Yes | No | User’s `organization_id` |
 | `multi_branch` | `MultiBranchContextResolver` | No* | Yes | Header e.g. `X-Branch-Id` |
 | `multi_tenant_multi_branch` | `MultiTenantMultiBranchContextResolver` | Yes | Yes | User org + branch header |
@@ -334,7 +345,7 @@ HTTP equivalent: **POST** `{prefix}/bootstrap` with optional `force=1` (permissi
 
 | Key | Default | Description |
 |-----|---------|-------------|
-| `tenancy_mode` | `multi_tenant_multi_branch` | `single_tenant` \| `multi_tenant` \| `multi_branch` \| `multi_tenant_multi_branch` |
+| `tenancy_mode` | `single_tenant` | `single_tenant` \| `multi_tenant` \| `multi_branch` \| `multi_tenant_multi_branch` |
 | `currency` | `USD` | Display/default currency code |
 | `fy_start` | `1` | First month of fiscal year (1–12) |
 | `route_prefix` | `api/v1/accounting` | API URL prefix |

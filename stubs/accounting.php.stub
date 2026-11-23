@@ -1,6 +1,7 @@
 <?php
 
 return [
+    // Start with single_tenant for simple apps; opt into multi_* when needed.
     'tenancy_mode' => '{{TENANCY_MODE}}',
     'currency' => '{{CURRENCY}}',
     'fy_start' => {{FY_START}},
