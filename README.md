@@ -1,6 +1,4 @@
----
-
-## For AI Agents and Coding Assistants
+﻿## For AI Agents and Coding Assistants
 
 If you are an AI agent integrating this package, read these files 
 in this exact order before writing any code:
@@ -29,7 +27,6 @@ The EXAMPLE_INTEGRATION.md file contains:
 Do not guess how this package works — read KNOWLEDGE.md first.
 Everything you need is documented there.
 
----
 
 # abdiaziizaweis/accounting
 
@@ -38,7 +35,6 @@ Reusable **double-entry accounting** for Laravel apps: chart of accounts (CoA), 
 **Namespace:** `Abdiaziizaweis\Accounting`  
 **Composer:** `abdiaziizaweis/accounting`
 
----
 
 ## Requirements
 
@@ -50,7 +46,6 @@ Reusable **double-entry accounting** for Laravel apps: chart of accounts (CoA), 
 
 Host apps need `users`, and—depending on tenancy—`organizations`, `branches`, `payment_methods`, and `expense_categories` tables (names configurable).
 
----
 
 ## Authentication
 
@@ -77,7 +72,6 @@ Pick the guard/middleware your app already uses:
 
 **Authorization:** Route abilities use the `permission:…` middleware alias. The package registers `AccountingPermissionMiddleware` only if the host has not already defined a `permission` alias. Checks go through `AccountingAuthInterface::can()` (`DefaultAccountingAuth` uses Laravel `Gate` and the authenticated user’s `can()` — compatible with Gates, Spatie Permission when installed, or a custom `AccountingAuthInterface` binding).
 
----
 
 ## Usage Patterns
 
@@ -95,7 +89,6 @@ See [docs/BLADE_INTEGRATION.md](docs/BLADE_INTEGRATION.md) for examples.
 
 Deploy the package inside a Laravel app and call the HTTP API from any client language. See [docs/KNOWLEDGE.md](docs/KNOWLEDGE.md) §2 for architecture.
 
----
 
 ## What this package does
 
@@ -109,7 +102,6 @@ Deploy the package inside a Laravel app and call the HTTP API from any client la
 8. **Pluggable audit logging** — Implement `AccountingAuditInterface` (or use `NullAccountingAudit` / `SpatieAccountingAudit`) so host apps can record audit events for transactions, journals, and transfers.
 9. **Extensible reports** — Register custom reports or override built-in ones via `AccountingReportRegistry` without editing package source.
 
----
 
 ## Installation
 
@@ -153,7 +145,6 @@ Routes use middleware alias `permission:…`. If your app has no `permission` mi
 
 Wire these into your RBAC (Gates, policies, Spatie Permission if installed, or a custom `AccountingAuthInterface`) before calling protected endpoints.
 
----
 
 ## Tenancy modes
 
@@ -179,7 +170,6 @@ Set `accounting.tenancy_mode` in config (**default `single_tenant`**). This cont
 
 `ResolveAccountingContext` middleware (include in `accounting.middleware`) binds `AccountingContextInterface` per request.
 
----
 
 ## Registering document types (`DocumentRegistry`)
 
@@ -223,7 +213,6 @@ php artisan accounting:bootstrap --force --organization-id=1 --branch-id=1
 
 Discover registered types (with mapping status) via **GET** `{prefix}/registry/documents` (no extra permission on this route).
 
----
 
 ## `AccountingDocumentInterface`
 
@@ -276,7 +265,6 @@ class SalesInvoice extends Model implements AccountingDocumentInterface
 
 Built-in transaction types (e.g. `hotel_invoice`, `purchase_invoice`) get **automatic** tax/discount N-line splits when branch settings assign tax/discount accounts. Custom types still store `tax_amount` / `discount_amount` but default to **two-line** mapping unless you extend the bridge or map manually.
 
----
 
 ## `HasAccountingDocument` trait
 
@@ -294,7 +282,6 @@ use Abdiaziizaweis\Accounting\Concerns\HasAccountingDocument;
 
 Errors during `record()` are **logged**, not thrown (host UX preserved). Deletes use **strict** void.
 
----
 
 ## Manual bridge
 
@@ -315,7 +302,6 @@ $bridge->voidFor($invoice, true, 'Manual void');
 
 Use manual calls when you are not using Eloquent events, batch imports, or non-Eloquent sources.
 
----
 
 ## AppServiceProvider bindings (optional override)
 
@@ -336,7 +322,6 @@ public function register(): void
 
 Implement `AccountingContextInterface` or `AccountingAuthInterface` for custom tenancy/auth. Singletons (`AccountingDocumentBridge`, `AccountingTransactionService`, etc.) are registered by the package—rebind only if you subclass services.
 
----
 
 ## `accounting:bootstrap`
 
@@ -358,7 +343,6 @@ php artisan accounting:bootstrap
 
 HTTP equivalent: **POST** `{prefix}/bootstrap` with optional `force=1` (permission: `manage accounting settings`).
 
----
 
 ## Configuration reference
 
@@ -384,7 +368,6 @@ HTTP equivalent: **POST** `{prefix}/bootstrap` with optional `force=1` (permissi
 | `tables.payment_methods` | `payment_methods` | Payment methods table |
 | `tables.expense_categories` | `expense_categories` | Expense categories table |
 
----
 
 ## Financial reports
 
@@ -407,7 +390,6 @@ Default period: `date_to` = today; `date_from` = start of current month (swapped
 
 Only journal entries with `status = active` (or `null` legacy) affect reports.
 
----
 
 ## Mappings
 
@@ -424,7 +406,6 @@ API:
 
 `AccountingTransactionService::tryAutoMap()` resolves mappings using transaction type hints, payment method, or expense category.
 
----
 
 ## Transaction lifecycle
 
@@ -448,7 +429,6 @@ Statuses (`AccountingTransactionStatus`):
 
 List endpoints hide voided rows unless `include_voided=1` or `scope=audit`.
 
----
 
 ## Journal entry lifecycle
 
@@ -467,7 +447,6 @@ Statuses (`AccountingJournalEntryStatus`):
 
 **Delete API:** Calls `voidEntry` — does not hard-delete.
 
----
 
 ## Tax and discount splitting
 
@@ -480,7 +459,6 @@ Sales split (simplified): DR AR (total); CR sales (net); CR tax payable; DR sale
 
 Purchase split: DR inventory (net); DR tax receivable; CR purchase discounts; CR AP (total).
 
----
 
 ## Troubleshooting
 
@@ -496,7 +474,6 @@ Purchase split: DR inventory (net); DR tax receivable; CR purchase discounts; CR
 | Tax split not applied | Custom `getDocumentType()` | Use built-in invoice types or custom `mapWithLines` |
 | `Missing CoA account key_name` on bootstrap | Wrong `default_debit`/`default_credit` in registry | Use valid `key_name` from seeded CoA (see `AccountingCoaSeeder`) |
 
----
 
 ## Documentation
 
@@ -536,3 +513,5 @@ abdiaziizaweis-accounting/
 ```
 
 **License:** MIT
+
+**Author:** Abdiaziiz Aweis Bashiir — [cabdicaziiz1717@gmail.com](mailto:cabdicaziiz1717@gmail.com)
