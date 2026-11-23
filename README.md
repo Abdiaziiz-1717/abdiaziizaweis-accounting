@@ -1,3 +1,35 @@
+---
+
+## For AI Agents and Coding Assistants
+
+If you are an AI agent integrating this package, read these files 
+in this exact order before writing any code:
+
+1. This README (you are here) — installation and quick start
+2. Full knowledge base: https://raw.githubusercontent.com/Abdiaziiz-1717/abdiaziizaweis-accounting/main/docs/KNOWLEDGE.md
+3. Complete integration example: https://raw.githubusercontent.com/Abdiaziiz-1717/abdiaziizaweis-accounting/main/docs/EXAMPLE_INTEGRATION.md
+
+The KNOWLEDGE.md file contains:
+- Full database schema (every table and column)
+- Complete HTTP API reference (every endpoint)
+- Transaction and journal entry lifecycle
+- Mapping system explained
+- Chart of accounts key_names list
+- Tax and discount splitting rules
+- All 6 financial reports with response shapes
+- Troubleshooting guide
+
+The EXAMPLE_INTEGRATION.md file contains:
+- Complete working example (car sales system)
+- Every interface method implemented
+- Sale, payment, and deletion flows
+- How to build a mapping UI
+
+Do not guess how this package works — read KNOWLEDGE.md first.
+Everything you need is documented there.
+
+---
+
 # abdiaziizaweis/accounting
 
 Reusable **double-entry accounting** for Laravel apps: chart of accounts (CoA), operational **transactions** bridged from your invoices/payments, automatic **journal entries** via mappings, inter-account **transfers**, and six **financial reports** over a Sanctum-protected JSON API.
@@ -403,9 +435,38 @@ Purchase split: DR inventory (net); DR tax receivable; CR purchase discounts; CR
 
 ---
 
-## Further reading
+## Documentation
 
-- [`docs/KNOWLEDGE.md`](docs/KNOWLEDGE.md) — dense agent-oriented reference (schema, API, flows).
-- [`docs/EXAMPLE_INTEGRATION.md`](docs/EXAMPLE_INTEGRATION.md) — car dealership end-to-end example.
+| Document | Description |
+|---|---|
+| [README](https://github.com/Abdiaziiz-1717/abdiaziizaweis-accounting/blob/main/README.md) | Installation and quick start |
+| [KNOWLEDGE.md](https://github.com/Abdiaziiz-1717/abdiaziizaweis-accounting/blob/main/docs/KNOWLEDGE.md) | Complete technical reference for developers and AI agents |
+| [EXAMPLE_INTEGRATION.md](https://github.com/Abdiaziiz-1717/abdiaziizaweis-accounting/blob/main/docs/EXAMPLE_INTEGRATION.md) | Full working integration example |
+
+## Repository Structure
+
+```
+abdiaziizaweis-accounting/
+├── config/accounting.php       # Default package config (merged on register)
+├── database/migrations/        # Accounting tables (auto-loaded)
+├── docs/
+│   ├── KNOWLEDGE.md            # Full technical + API reference
+│   └── EXAMPLE_INTEGRATION.md  # End-to-end host app example
+├── routes/api.php              # HTTP routes (prefix + middleware from config)
+├── stubs/accounting.php.stub   # Template written by accounting:install
+└── src/
+    ├── AccountingServiceProvider.php
+    ├── Auth/                   # DefaultAccountingAuth
+    ├── Concerns/               # HasAccountingDocument
+    ├── Console/                # accounting:install, accounting:bootstrap
+    ├── Context/                # Tenancy resolvers
+    ├── Contracts/              # Context, auth, document interfaces
+    ├── Enums/
+    ├── Exceptions/
+    ├── Http/                   # Controllers, middleware, traits
+    ├── Models/
+    ├── Registry/               # DocumentRegistry
+    └── Services/                 # Bridge, journal, transaction, reports, …
+```
 
 **License:** MIT
