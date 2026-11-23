@@ -1,6 +1,6 @@
 <?php
 
-namespace Jtech\Accounting\Database\Migration;
+namespace Abdiaziizaweis\Accounting\Database\Migration;
 
 use Illuminate\Database\Schema\Blueprint;
 

@@ -1,12 +1,12 @@
 <?php
 
-namespace Jtech\Accounting\Http\Controllers;
+namespace Abdiaziizaweis\Accounting\Http\Controllers;
 
-use Jtech\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
 
-use Jtech\Accounting\Enums\AccountingAccountType;
-use Jtech\Accounting\Http\Controllers\BaseController;
-use Jtech\Accounting\Models\AccountingAccount;
+use Abdiaziizaweis\Accounting\Enums\AccountingAccountType;
+use Abdiaziizaweis\Accounting\Http\Controllers\BaseController;
+use Abdiaziizaweis\Accounting\Models\AccountingAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;

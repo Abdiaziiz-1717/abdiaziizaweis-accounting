@@ -1,9 +1,9 @@
 <?php
 
-namespace Jtech\Accounting\Models;
+namespace Abdiaziizaweis\Accounting\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Jtech\Accounting\Models\Concerns\BelongsToAccountingContext;
+use Abdiaziizaweis\Accounting\Models\Concerns\BelongsToAccountingContext;
 
 class AccountingBranchSetting extends Model
 {

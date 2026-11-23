@@ -1,13 +1,13 @@
 <?php
 
-namespace Jtech\Accounting\Services;
+namespace Abdiaziizaweis\Accounting\Services;
 
-use Jtech\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
 
-use Jtech\Accounting\Enums\AccountingModule;
-use Jtech\Accounting\Models\AccountingDocumentMapping;
-use Jtech\Accounting\Models\AccountingExpenseCategoryMapping;
-use Jtech\Accounting\Models\AccountingPaymentMethodMapping;
+use Abdiaziizaweis\Accounting\Enums\AccountingModule;
+use Abdiaziizaweis\Accounting\Models\AccountingDocumentMapping;
+use Abdiaziizaweis\Accounting\Models\AccountingExpenseCategoryMapping;
+use Abdiaziizaweis\Accounting\Models\AccountingPaymentMethodMapping;
 use Illuminate\Support\Facades\Cache;
 
 class AccountingMappingResolver

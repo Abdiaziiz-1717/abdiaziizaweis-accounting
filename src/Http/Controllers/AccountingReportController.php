@@ -1,10 +1,10 @@
 <?php
 
-namespace Jtech\Accounting\Http\Controllers;
+namespace Abdiaziizaweis\Accounting\Http\Controllers;
 
 use Illuminate\Routing\Controller;
-use Jtech\Accounting\Services\AccountingReportService;
-use Jtech\Accounting\Http\Traits\ApiResponseTrait;
+use Abdiaziizaweis\Accounting\Services\AccountingReportService;
+use Abdiaziizaweis\Accounting\Http\Traits\ApiResponseTrait;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

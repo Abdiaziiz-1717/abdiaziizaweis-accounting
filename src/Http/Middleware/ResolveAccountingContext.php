@@ -1,14 +1,14 @@
 <?php
 
-namespace Jtech\Accounting\Http\Middleware;
+namespace Abdiaziizaweis\Accounting\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Jtech\Accounting\Context\MultiBranchContextResolver;
-use Jtech\Accounting\Context\MultiTenantContextResolver;
-use Jtech\Accounting\Context\MultiTenantMultiBranchContextResolver;
-use Jtech\Accounting\Context\SingleTenantContextResolver;
-use Jtech\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Context\MultiBranchContextResolver;
+use Abdiaziizaweis\Accounting\Context\MultiTenantContextResolver;
+use Abdiaziizaweis\Accounting\Context\MultiTenantMultiBranchContextResolver;
+use Abdiaziizaweis\Accounting\Context\SingleTenantContextResolver;
+use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
 use Symfony\Component\HttpFoundation\Response;
 
 class ResolveAccountingContext

@@ -1,11 +1,11 @@
 <?php
 
-namespace Jtech\Accounting\Auth;
+namespace Abdiaziizaweis\Accounting\Auth;
 
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Gate;
-use Jtech\Accounting\Contracts\AccountingAuthInterface;
+use Abdiaziizaweis\Accounting\Contracts\AccountingAuthInterface;
 
 class DefaultAccountingAuth implements AccountingAuthInterface
 {

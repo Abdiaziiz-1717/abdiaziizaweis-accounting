@@ -1,11 +1,11 @@
 <?php
 
-namespace Jtech\Accounting\Models\Concerns;
+namespace Abdiaziizaweis\Accounting\Models\Concerns;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Jtech\Accounting\Contracts\AccountingContextInterface;
-use Jtech\Accounting\Models\Scopes\AccountingContextScope;
+use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Models\Scopes\AccountingContextScope;
 use RuntimeException;
 
 /**

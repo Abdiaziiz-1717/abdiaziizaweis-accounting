@@ -1,12 +1,12 @@
 <?php
 
-namespace Jtech\Accounting\Services;
+namespace Abdiaziizaweis\Accounting\Services;
 
-use Jtech\Accounting\Enums\AccountingAccountType;
-use Jtech\Accounting\Models\AccountingAccount;
-use Jtech\Accounting\Models\AccountingBranchSetting;
+use Abdiaziizaweis\Accounting\Enums\AccountingAccountType;
+use Abdiaziizaweis\Accounting\Models\AccountingAccount;
+use Abdiaziizaweis\Accounting\Models\AccountingBranchSetting;
 use Illuminate\Support\Facades\DB;
-use Jtech\Accounting\Database\Migration\TenancySchemaHelper;
+use Abdiaziizaweis\Accounting\Database\Migration\TenancySchemaHelper;
 
 class AccountingCoaSeeder
 {

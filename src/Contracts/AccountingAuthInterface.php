@@ -1,6 +1,6 @@
 <?php
 
-namespace Jtech\Accounting\Contracts;
+namespace Abdiaziizaweis\Accounting\Contracts;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 

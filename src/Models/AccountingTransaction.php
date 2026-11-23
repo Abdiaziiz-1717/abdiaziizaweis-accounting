@@ -1,13 +1,13 @@
 <?php
 
-namespace Jtech\Accounting\Models;
+namespace Abdiaziizaweis\Accounting\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Jtech\Accounting\Enums\AccountingTransactionStatus;
-use Jtech\Accounting\Models\Concerns\BelongsToAccountingContext;
+use Abdiaziizaweis\Accounting\Enums\AccountingTransactionStatus;
+use Abdiaziizaweis\Accounting\Models\Concerns\BelongsToAccountingContext;
 use LogicException;
 
 class AccountingTransaction extends Model

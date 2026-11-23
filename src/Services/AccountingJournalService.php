@@ -1,15 +1,15 @@
 <?php
 
-namespace Jtech\Accounting\Services;
+namespace Abdiaziizaweis\Accounting\Services;
 
-use Jtech\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
 
-use Jtech\Accounting\Enums\AccountingJournalEntryStatus;
-use Jtech\Accounting\Enums\AccountingJournalSource;
-use Jtech\Accounting\Models\AccountingJournalEntry;
-use Jtech\Accounting\Models\AccountingJournalEntryLine;
-use Jtech\Accounting\Models\AccountingTransaction;
-use Jtech\Accounting\Models\AccountingTransfer;
+use Abdiaziizaweis\Accounting\Enums\AccountingJournalEntryStatus;
+use Abdiaziizaweis\Accounting\Enums\AccountingJournalSource;
+use Abdiaziizaweis\Accounting\Models\AccountingJournalEntry;
+use Abdiaziizaweis\Accounting\Models\AccountingJournalEntryLine;
+use Abdiaziizaweis\Accounting\Models\AccountingTransaction;
+use Abdiaziizaweis\Accounting\Models\AccountingTransfer;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;

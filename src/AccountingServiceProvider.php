@@ -1,26 +1,26 @@
 <?php
 
-namespace Jtech\Accounting;
+namespace Abdiaziizaweis\Accounting;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use Jtech\Accounting\Auth\DefaultAccountingAuth;
-use Jtech\Accounting\Console\BootstrapCommand;
-use Jtech\Accounting\Console\InstallCommand;
-use Jtech\Accounting\Context\MultiBranchContextResolver;
-use Jtech\Accounting\Context\MultiTenantContextResolver;
-use Jtech\Accounting\Context\MultiTenantMultiBranchContextResolver;
-use Jtech\Accounting\Context\SingleTenantContextResolver;
-use Jtech\Accounting\Contracts\AccountingAuthInterface;
-use Jtech\Accounting\Contracts\AccountingContextInterface;
-use Jtech\Accounting\Http\Middleware\AccountingPermissionMiddleware;
-use Jtech\Accounting\Http\Middleware\ResolveAccountingContext;
-use Jtech\Accounting\Services\AccountingDocumentBridge;
-use Jtech\Accounting\Services\AccountingJournalService;
-use Jtech\Accounting\Services\AccountingMappingResolver;
-use Jtech\Accounting\Services\AccountingReportService;
-use Jtech\Accounting\Services\AccountingTransactionService;
-use Jtech\Accounting\Services\AccountingTransferService;
+use Abdiaziizaweis\Accounting\Auth\DefaultAccountingAuth;
+use Abdiaziizaweis\Accounting\Console\BootstrapCommand;
+use Abdiaziizaweis\Accounting\Console\InstallCommand;
+use Abdiaziizaweis\Accounting\Context\MultiBranchContextResolver;
+use Abdiaziizaweis\Accounting\Context\MultiTenantContextResolver;
+use Abdiaziizaweis\Accounting\Context\MultiTenantMultiBranchContextResolver;
+use Abdiaziizaweis\Accounting\Context\SingleTenantContextResolver;
+use Abdiaziizaweis\Accounting\Contracts\AccountingAuthInterface;
+use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Http\Middleware\AccountingPermissionMiddleware;
+use Abdiaziizaweis\Accounting\Http\Middleware\ResolveAccountingContext;
+use Abdiaziizaweis\Accounting\Services\AccountingDocumentBridge;
+use Abdiaziizaweis\Accounting\Services\AccountingJournalService;
+use Abdiaziizaweis\Accounting\Services\AccountingMappingResolver;
+use Abdiaziizaweis\Accounting\Services\AccountingReportService;
+use Abdiaziizaweis\Accounting\Services\AccountingTransactionService;
+use Abdiaziizaweis\Accounting\Services\AccountingTransferService;
 
 class AccountingServiceProvider extends ServiceProvider
 {

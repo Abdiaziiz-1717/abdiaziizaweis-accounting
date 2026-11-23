@@ -1,11 +1,11 @@
 <?php
 
-namespace Jtech\Accounting\Context;
+namespace Abdiaziizaweis\Accounting\Context;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Jtech\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
 use Symfony\Component\HttpFoundation\Response;
 
 class MultiBranchContextResolver implements AccountingContextInterface

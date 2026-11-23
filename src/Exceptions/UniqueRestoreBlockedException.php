@@ -1,6 +1,6 @@
 <?php
 
-namespace Jtech\Accounting\Exceptions;
+namespace Abdiaziizaweis\Accounting\Exceptions;
 
 use Exception;
 

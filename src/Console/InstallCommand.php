@@ -1,13 +1,13 @@
 <?php
 
-namespace Jtech\Accounting\Console;
+namespace Abdiaziizaweis\Accounting\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
-use Jtech\Accounting\Context\MultiBranchContextResolver;
-use Jtech\Accounting\Context\MultiTenantContextResolver;
-use Jtech\Accounting\Context\MultiTenantMultiBranchContextResolver;
-use Jtech\Accounting\Context\SingleTenantContextResolver;
+use Abdiaziizaweis\Accounting\Context\MultiBranchContextResolver;
+use Abdiaziizaweis\Accounting\Context\MultiTenantContextResolver;
+use Abdiaziizaweis\Accounting\Context\MultiTenantMultiBranchContextResolver;
+use Abdiaziizaweis\Accounting\Context\SingleTenantContextResolver;
 class InstallCommand extends Command
 {
     protected $signature = 'accounting:install';
@@ -95,7 +95,7 @@ class InstallCommand extends Command
         $this->newLine();
         $this->line('Register your document types in AppServiceProvider:');
         $this->newLine();
-        $this->line('use Jtech\Accounting\Registry\DocumentRegistry;');
+        $this->line('use Abdiaziizaweis\Accounting\Registry\DocumentRegistry;');
         $this->newLine();
         $this->line('DocumentRegistry::register(');
         $this->line("    module:        'sales',");
@@ -209,13 +209,13 @@ class InstallCommand extends Command
         $this->line('Add this to your AppServiceProvider register() method:');
         $this->newLine();
         $this->line('$this->app->bind(');
-        $this->line('    \\Jtech\\Accounting\\Contracts\\AccountingContextInterface::class,');
+        $this->line('    \\Abdiaziizaweis\\Accounting\\Contracts\\AccountingContextInterface::class,');
         $this->line("    {$resolverFqn}::class");
         $this->line(');');
         $this->newLine();
         $this->line('$this->app->bind(');
-        $this->line('    \\Jtech\\Accounting\\Contracts\\AccountingAuthInterface::class,');
-        $this->line('    \\Jtech\\Accounting\\Auth\\DefaultAccountingAuth::class');
+        $this->line('    \\Abdiaziizaweis\\Accounting\\Contracts\\AccountingAuthInterface::class,');
+        $this->line('    \\Abdiaziizaweis\\Accounting\\Auth\\DefaultAccountingAuth::class');
         $this->line(');');
     }
 

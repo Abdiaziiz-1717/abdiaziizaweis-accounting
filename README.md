@@ -1,11 +1,11 @@
-# jtech/accounting
+# abdiaziizaweis/accounting
 
 Reusable double-entry accounting module for Laravel 11 applications. Includes chart of accounts, journal entries, transaction mapping, transfers, REST APIs, and financial reports.
 
 ## Installation
 
 ```bash
-composer require jtech/accounting
+composer require abdiaziizaweis/accounting
 php artisan accounting:install
 ```
 
@@ -28,7 +28,7 @@ php artisan accounting:bootstrap
 In your `AppServiceProvider` `boot()`:
 
 ```php
-use Jtech\Accounting\Registry\DocumentRegistry;
+use Abdiaziizaweis\Accounting\Registry\DocumentRegistry;
 
 DocumentRegistry::register(
     module:        'sales',
@@ -49,8 +49,8 @@ In your controller or service after saving your model:
 
 ```php
 use Illuminate\Support\Carbon;
-use Jtech\Accounting\Contracts\AccountingDocumentInterface;
-use Jtech\Accounting\Services\AccountingDocumentBridge;
+use Abdiaziizaweis\Accounting\Contracts\AccountingDocumentInterface;
+use Abdiaziizaweis\Accounting\Services\AccountingDocumentBridge;
 
 class SalesOrderAccountingDocument implements AccountingDocumentInterface
 {

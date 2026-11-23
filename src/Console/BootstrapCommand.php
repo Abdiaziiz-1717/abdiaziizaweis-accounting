@@ -1,15 +1,15 @@
 <?php
 
-namespace Jtech\Accounting\Console;
+namespace Abdiaziizaweis\Accounting\Console;
 
 use Illuminate\Console\Command;
-use Jtech\Accounting\Contracts\AccountingAuthInterface;
-use Jtech\Accounting\Contracts\AccountingContextInterface;
-use Jtech\Accounting\Database\Migration\TenancySchemaHelper;
-use Jtech\Accounting\Models\AccountingAccount;
-use Jtech\Accounting\Models\AccountingDocumentMapping;
-use Jtech\Accounting\Services\AccountingMappingResolver;
-use Jtech\Accounting\Services\AccountingMappingSeeder;
+use Abdiaziizaweis\Accounting\Contracts\AccountingAuthInterface;
+use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Database\Migration\TenancySchemaHelper;
+use Abdiaziizaweis\Accounting\Models\AccountingAccount;
+use Abdiaziizaweis\Accounting\Models\AccountingDocumentMapping;
+use Abdiaziizaweis\Accounting\Services\AccountingMappingResolver;
+use Abdiaziizaweis\Accounting\Services\AccountingMappingSeeder;
 
 class BootstrapCommand extends Command
 {

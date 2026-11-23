@@ -1,13 +1,13 @@
 <?php
 
-namespace Jtech\Accounting\Http\Controllers;
+namespace Abdiaziizaweis\Accounting\Http\Controllers;
 
-use Jtech\Accounting\Contracts\AccountingAuthInterface;
-use Jtech\Accounting\Contracts\AccountingContextInterface;
-use Jtech\Accounting\Models\AccountingAccount;
-use Jtech\Accounting\Models\AccountingDocumentMapping;
-use Jtech\Accounting\Services\AccountingMappingResolver;
-use Jtech\Accounting\Services\AccountingMappingSeeder;
+use Abdiaziizaweis\Accounting\Contracts\AccountingAuthInterface;
+use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Models\AccountingAccount;
+use Abdiaziizaweis\Accounting\Models\AccountingDocumentMapping;
+use Abdiaziizaweis\Accounting\Services\AccountingMappingResolver;
+use Abdiaziizaweis\Accounting\Services\AccountingMappingSeeder;
 use Illuminate\Http\Request;
 
 class AccountingBootstrapController extends BaseController

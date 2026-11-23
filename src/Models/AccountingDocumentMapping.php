@@ -1,11 +1,11 @@
 <?php
 
-namespace Jtech\Accounting\Models;
+namespace Abdiaziizaweis\Accounting\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Jtech\Accounting\Enums\AccountingModule;
-use Jtech\Accounting\Models\Concerns\BelongsToAccountingContext;
+use Abdiaziizaweis\Accounting\Enums\AccountingModule;
+use Abdiaziizaweis\Accounting\Models\Concerns\BelongsToAccountingContext;
 
 class AccountingDocumentMapping extends Model
 {

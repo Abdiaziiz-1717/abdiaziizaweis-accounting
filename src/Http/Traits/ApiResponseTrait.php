@@ -1,6 +1,6 @@
 <?php
 
-namespace Jtech\Accounting\Http\Traits;
+namespace Abdiaziizaweis\Accounting\Http\Traits;
 
 use Illuminate\Http\JsonResponse;
 

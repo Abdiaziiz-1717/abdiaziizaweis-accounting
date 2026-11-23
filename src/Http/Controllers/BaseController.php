@@ -1,15 +1,15 @@
 <?php
 
-namespace Jtech\Accounting\Http\Controllers;
+namespace Abdiaziizaweis\Accounting\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Schema;
-use Jtech\Accounting\Contracts\AccountingAuthInterface;
-use Jtech\Accounting\Contracts\AccountingContextInterface;
-use Jtech\Accounting\Exceptions\UniqueRestoreBlockedException;
-use Jtech\Accounting\Http\Traits\ApiFilterTrait;
-use Jtech\Accounting\Http\Traits\ApiResponseTrait;
+use Abdiaziizaweis\Accounting\Contracts\AccountingAuthInterface;
+use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Exceptions\UniqueRestoreBlockedException;
+use Abdiaziizaweis\Accounting\Http\Traits\ApiFilterTrait;
+use Abdiaziizaweis\Accounting\Http\Traits\ApiResponseTrait;
 
 class BaseController extends Controller
 {

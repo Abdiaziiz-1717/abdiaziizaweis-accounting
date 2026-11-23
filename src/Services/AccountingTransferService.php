@@ -1,11 +1,11 @@
 <?php
 
-namespace Jtech\Accounting\Services;
+namespace Abdiaziizaweis\Accounting\Services;
 
-use Jtech\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
 
-use Jtech\Accounting\Enums\AccountingJournalSource;
-use Jtech\Accounting\Models\AccountingTransfer;
+use Abdiaziizaweis\Accounting\Enums\AccountingJournalSource;
+use Abdiaziizaweis\Accounting\Models\AccountingTransfer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 

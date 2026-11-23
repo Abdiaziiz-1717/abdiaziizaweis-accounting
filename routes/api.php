@@ -1,17 +1,17 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Jtech\Accounting\Http\Controllers\AccountingAccountController;
-use Jtech\Accounting\Http\Controllers\AccountingBootstrapController;
-use Jtech\Accounting\Http\Controllers\AccountingDocumentMappingController;
-use Jtech\Accounting\Http\Controllers\AccountingExpenseCategoryMappingController;
-use Jtech\Accounting\Http\Controllers\AccountingJournalEntryController;
-use Jtech\Accounting\Http\Controllers\AccountingPaymentMethodMappingController;
-use Jtech\Accounting\Http\Controllers\AccountingReportController;
-use Jtech\Accounting\Http\Controllers\AccountingSettingsController;
-use Jtech\Accounting\Http\Controllers\AccountingTransactionController;
-use Jtech\Accounting\Http\Controllers\AccountingTransferController;
-use Jtech\Accounting\Http\Controllers\DocumentRegistryController;
+use Abdiaziizaweis\Accounting\Http\Controllers\AccountingAccountController;
+use Abdiaziizaweis\Accounting\Http\Controllers\AccountingBootstrapController;
+use Abdiaziizaweis\Accounting\Http\Controllers\AccountingDocumentMappingController;
+use Abdiaziizaweis\Accounting\Http\Controllers\AccountingExpenseCategoryMappingController;
+use Abdiaziizaweis\Accounting\Http\Controllers\AccountingJournalEntryController;
+use Abdiaziizaweis\Accounting\Http\Controllers\AccountingPaymentMethodMappingController;
+use Abdiaziizaweis\Accounting\Http\Controllers\AccountingReportController;
+use Abdiaziizaweis\Accounting\Http\Controllers\AccountingSettingsController;
+use Abdiaziizaweis\Accounting\Http\Controllers\AccountingTransactionController;
+use Abdiaziizaweis\Accounting\Http\Controllers\AccountingTransferController;
+use Abdiaziizaweis\Accounting\Http\Controllers\DocumentRegistryController;
 
 Route::get('/registry/documents', [DocumentRegistryController::class, 'index']);
 

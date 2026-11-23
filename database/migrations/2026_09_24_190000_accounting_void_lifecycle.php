@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Jtech\Accounting\Database\Migration\TenancySchemaHelper;
+use Abdiaziizaweis\Accounting\Database\Migration\TenancySchemaHelper;
 
 /**
  * Accounting source-of-truth: void lifecycle instead of soft/hard delete

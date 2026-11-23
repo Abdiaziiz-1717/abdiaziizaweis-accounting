@@ -1,14 +1,14 @@
 <?php
 
-namespace Jtech\Accounting\Services;
+namespace Abdiaziizaweis\Accounting\Services;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
-use Jtech\Accounting\Contracts\AccountingContextInterface;
-use Jtech\Accounting\Contracts\AccountingDocumentInterface;
-use Jtech\Accounting\Enums\AccountingModule;
-use Jtech\Accounting\Models\AccountingBranchSetting;
-use Jtech\Accounting\Models\AccountingTransaction;
+use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Contracts\AccountingDocumentInterface;
+use Abdiaziizaweis\Accounting\Enums\AccountingModule;
+use Abdiaziizaweis\Accounting\Models\AccountingBranchSetting;
+use Abdiaziizaweis\Accounting\Models\AccountingTransaction;
 
 /**
  * Map host documents (AccountingDocumentInterface) → AccountingTransactionService.

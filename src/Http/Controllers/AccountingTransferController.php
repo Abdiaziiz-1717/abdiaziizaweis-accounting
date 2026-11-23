@@ -1,14 +1,14 @@
 <?php
 
-namespace Jtech\Accounting\Http\Controllers;
+namespace Abdiaziizaweis\Accounting\Http\Controllers;
 
-use Jtech\Accounting\Contracts\AccountingAuthInterface;
+use Abdiaziizaweis\Accounting\Contracts\AccountingAuthInterface;
 
-use Jtech\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
 
-use Jtech\Accounting\Http\Controllers\BaseController;
-use Jtech\Accounting\Models\AccountingTransfer;
-use Jtech\Accounting\Services\AccountingTransferService;
+use Abdiaziizaweis\Accounting\Http\Controllers\BaseController;
+use Abdiaziizaweis\Accounting\Models\AccountingTransfer;
+use Abdiaziizaweis\Accounting\Services\AccountingTransferService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 

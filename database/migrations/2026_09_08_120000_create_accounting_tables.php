@@ -3,8 +3,8 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Jtech\Accounting\Database\Migration\TenancySchemaHelper;
-use Jtech\Accounting\Services\AccountingCoaSeeder;
+use Abdiaziizaweis\Accounting\Database\Migration\TenancySchemaHelper;
+use Abdiaziizaweis\Accounting\Services\AccountingCoaSeeder;
 
 /**
  * Branch-scoped Accounting module foundation (CoA, JEs, mappings, transfers, reconciles).

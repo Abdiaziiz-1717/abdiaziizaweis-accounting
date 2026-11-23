@@ -1,6 +1,6 @@
 <?php
 
-namespace Jtech\Accounting\Enums;
+namespace Abdiaziizaweis\Accounting\Enums;
 
 enum AccountingModule: string
 {

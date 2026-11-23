@@ -1,11 +1,11 @@
 <?php
 
-namespace Jtech\Accounting\Models;
+namespace Abdiaziizaweis\Accounting\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Jtech\Accounting\Models\Concerns\BelongsToAccountingContext;
+use Abdiaziizaweis\Accounting\Models\Concerns\BelongsToAccountingContext;
 
 class AccountingTransfer extends Model
 {

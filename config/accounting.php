@@ -1,7 +1,7 @@
 <?php
 
-use Jtech\Accounting\Auth\DefaultAccountingAuth;
-use Jtech\Accounting\Http\Middleware\ResolveAccountingContext;
+use Abdiaziizaweis\Accounting\Auth\DefaultAccountingAuth;
+use Abdiaziizaweis\Accounting\Http\Middleware\ResolveAccountingContext;
 
 return [
     /*

@@ -1,6 +1,6 @@
 <?php
 
-namespace Jtech\Accounting\Models;
+namespace Abdiaziizaweis\Accounting\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

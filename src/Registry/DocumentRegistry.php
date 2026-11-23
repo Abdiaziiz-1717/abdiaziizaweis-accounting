@@ -1,6 +1,6 @@
 <?php
 
-namespace Jtech\Accounting\Registry;
+namespace Abdiaziizaweis\Accounting\Registry;
 
 class DocumentRegistry
 {

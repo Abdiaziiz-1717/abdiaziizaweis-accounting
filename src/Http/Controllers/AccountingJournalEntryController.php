@@ -1,14 +1,14 @@
 <?php
 
-namespace Jtech\Accounting\Http\Controllers;
+namespace Abdiaziizaweis\Accounting\Http\Controllers;
 
-use Jtech\Accounting\Contracts\AccountingAuthInterface;
+use Abdiaziizaweis\Accounting\Contracts\AccountingAuthInterface;
 
-use Jtech\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
 
-use Jtech\Accounting\Http\Controllers\BaseController;
-use Jtech\Accounting\Models\AccountingJournalEntry;
-use Jtech\Accounting\Services\AccountingJournalService;
+use Abdiaziizaweis\Accounting\Http\Controllers\BaseController;
+use Abdiaziizaweis\Accounting\Models\AccountingJournalEntry;
+use Abdiaziizaweis\Accounting\Services\AccountingJournalService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 

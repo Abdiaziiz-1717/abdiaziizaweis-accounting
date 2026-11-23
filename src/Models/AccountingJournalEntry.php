@@ -1,14 +1,14 @@
 <?php
 
-namespace Jtech\Accounting\Models;
+namespace Abdiaziizaweis\Accounting\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Jtech\Accounting\Enums\AccountingJournalEntryStatus;
-use Jtech\Accounting\Enums\AccountingJournalSource;
-use Jtech\Accounting\Models\Concerns\BelongsToAccountingContext;
+use Abdiaziizaweis\Accounting\Enums\AccountingJournalEntryStatus;
+use Abdiaziizaweis\Accounting\Enums\AccountingJournalSource;
+use Abdiaziizaweis\Accounting\Models\Concerns\BelongsToAccountingContext;
 use LogicException;
 
 class AccountingJournalEntry extends Model

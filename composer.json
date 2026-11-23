@@ -1,12 +1,12 @@
 {
-    "name": "jtech/accounting",
+    "name": "abdiaziizaweis/accounting",
     "description": "Reusable double-entry accounting module for Laravel applications",
     "type": "library",
     "license": "MIT",
     "authors": [
         {
-            "name": "Abdiaziiz",
-            "email": "cabdicaziiz1717@gmail.com"
+            "name": "Abdiaziiz Aweis",
+            "email": "your@email.com"
         }
     ],
     "require": {
@@ -19,18 +19,18 @@
     },
     "autoload": {
         "psr-4": {
-            "Jtech\\Accounting\\": "src/"
+            "Abdiaziizaweis\\Accounting\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Jtech\\Accounting\\Tests\\": "tests/"
+            "Abdiaziizaweis\\Accounting\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Jtech\\Accounting\\AccountingServiceProvider"
+                "Abdiaziizaweis\\Accounting\\AccountingServiceProvider"
             ]
         }
     },

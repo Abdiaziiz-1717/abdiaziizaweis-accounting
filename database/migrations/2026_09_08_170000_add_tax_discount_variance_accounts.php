@@ -3,8 +3,8 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Jtech\Accounting\Database\Migration\TenancySchemaHelper;
-use Jtech\Accounting\Models\AccountingAccount;
+use Abdiaziizaweis\Accounting\Database\Migration\TenancySchemaHelper;
+use Abdiaziizaweis\Accounting\Models\AccountingAccount;
 
 /**
  * Backfills the new default accounts (added to AccountingCoaSeeder) onto branches

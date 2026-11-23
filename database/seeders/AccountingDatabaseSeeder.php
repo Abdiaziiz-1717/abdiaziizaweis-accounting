@@ -1,6 +1,6 @@
 <?php
 
-namespace Jtech\Accounting\Database\Seeders;
+namespace Abdiaziizaweis\Accounting\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 

@@ -1,11 +1,11 @@
 <?php
 
-namespace Jtech\Accounting\Services;
+namespace Abdiaziizaweis\Accounting\Services;
 
-use Jtech\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
 
-use Jtech\Accounting\Enums\AccountingAccountType;
-use Jtech\Accounting\Models\AccountingAccount;
+use Abdiaziizaweis\Accounting\Enums\AccountingAccountType;
+use Abdiaziizaweis\Accounting\Models\AccountingAccount;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -711,7 +711,7 @@ class AccountingReportService
     {
         $limit = max(1, min(60, $limit));
 
-        $entryScope = \Jtech\Accounting\Models\AccountingJournalEntry::query()->select('id');
+        $entryScope = \Abdiaziizaweis\Accounting\Models\AccountingJournalEntry::query()->select('id');
 
         $query = DB::table('accounting_journal_entries as je')
             ->join('accounting_journal_entry_lines as jel', 'jel.journal_entry_id', '=', 'je.id')

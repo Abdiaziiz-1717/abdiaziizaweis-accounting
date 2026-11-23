@@ -11,6 +11,6 @@ return [
         'discount_splitting' => {{DISCOUNT_SPLITTING}},
     ],
     'auth' => [
-        'guard' => \Jtech\Accounting\Auth\DefaultAccountingAuth::class,
+        'guard' => \Abdiaziizaweis\Accounting\Auth\DefaultAccountingAuth::class,
     ],
 ];

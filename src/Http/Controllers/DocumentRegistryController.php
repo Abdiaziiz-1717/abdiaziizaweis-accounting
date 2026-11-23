@@ -1,12 +1,12 @@
 <?php
 
-namespace Jtech\Accounting\Http\Controllers;
+namespace Abdiaziizaweis\Accounting\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
-use Jtech\Accounting\Contracts\AccountingContextInterface;
-use Jtech\Accounting\Models\AccountingDocumentMapping;
-use Jtech\Accounting\Registry\DocumentRegistry;
+use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Models\AccountingDocumentMapping;
+use Abdiaziizaweis\Accounting\Registry\DocumentRegistry;
 
 class DocumentRegistryController extends Controller
 {

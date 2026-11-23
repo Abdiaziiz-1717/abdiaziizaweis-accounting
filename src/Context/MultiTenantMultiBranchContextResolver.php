@@ -1,6 +1,6 @@
 <?php
 
-namespace Jtech\Accounting\Context;
+namespace Abdiaziizaweis\Accounting\Context;
 
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;

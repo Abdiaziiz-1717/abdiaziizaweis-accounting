@@ -1,11 +1,11 @@
 <?php
 
-namespace Jtech\Accounting\Http\Controllers;
+namespace Abdiaziizaweis\Accounting\Http\Controllers;
 
-use Jtech\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
 
-use Jtech\Accounting\Http\Controllers\BaseController;
-use Jtech\Accounting\Models\AccountingBranchSetting;
+use Abdiaziizaweis\Accounting\Http\Controllers\BaseController;
+use Abdiaziizaweis\Accounting\Models\AccountingBranchSetting;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 

@@ -1,11 +1,11 @@
 <?php
 
-namespace Jtech\Accounting\Models\Scopes;
+namespace Abdiaziizaweis\Accounting\Models\Scopes;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Scope;
-use Jtech\Accounting\Contracts\AccountingContextInterface;
+use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
 
 class AccountingContextScope implements Scope
 {

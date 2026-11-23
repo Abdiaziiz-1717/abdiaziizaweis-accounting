@@ -1,10 +1,10 @@
 <?php
 
-namespace Jtech\Accounting\Http\Middleware;
+namespace Abdiaziizaweis\Accounting\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Jtech\Accounting\Contracts\AccountingAuthInterface;
+use Abdiaziizaweis\Accounting\Contracts\AccountingAuthInterface;
 use Symfony\Component\HttpFoundation\Response;
 
 class AccountingPermissionMiddleware
