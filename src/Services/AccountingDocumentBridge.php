@@ -28,6 +28,15 @@ class AccountingDocumentBridge
         protected AccountingMappingResolver $resolver,
     ) {}
 
+    /**
+     * Create or update the accounting transaction for a host document, then auto-map when possible.
+     *
+     * Uses current {@see AccountingContextInterface} for organization, branch, and owner.
+     * Swallows errors by default (logs via {@see safe()}) so host HTTP flows are not broken;
+     * use manual calls with monitoring if you need hard failures.
+     *
+     * Invoice types may receive N-line tax/discount journal splits when branch settings allow.
+     */
     public function record(AccountingDocumentInterface $document): void
     {
         $this->safe(function () use ($document) {
@@ -126,7 +135,13 @@ class AccountingDocumentBridge
     }
 
     /**
-     * @param  bool  $strict  When true the method throws on accounting failure instead of silently logging.
+     * Void all active accounting transactions for this morph + document type.
+     *
+     * Linked journal entries are voided through {@see AccountingTransactionService::voidTransaction()}.
+     * Host rows are never deleted.
+     *
+     * @param  bool  $strict  When true, exceptions propagate (e.g. {@see HasAccountingDocument} on delete).
+     * @param  string|null  $reason  Stored on the voided transaction / journal entry audit trail.
      */
     public function voidFor(AccountingDocumentInterface $document, bool $strict = false, ?string $reason = null): void
     {

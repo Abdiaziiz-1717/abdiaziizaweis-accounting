@@ -22,6 +22,21 @@ use Abdiaziizaweis\Accounting\Services\AccountingReportService;
 use Abdiaziizaweis\Accounting\Services\AccountingTransactionService;
 use Abdiaziizaweis\Accounting\Services\AccountingTransferService;
 
+/**
+ * Laravel package entry point for abdiaziizaweis/accounting.
+ *
+ * **register()**
+ * - Merges `config/accounting.php`
+ * - Binds {@see AccountingContextInterface} from `tenancy_mode`
+ * - Binds {@see AccountingAuthInterface} from `auth.guard`
+ * - Registers singletons: bridge, transaction/journal/mapping/report/transfer services
+ *
+ * **boot()**
+ * - Loads migrations and API routes (`route_prefix`, `middleware`)
+ * - Publishes `accounting-config` and `accounting-migrations`
+ * - Registers `accounting:install` and `accounting:bootstrap`
+ * - Aliases middleware: `accounting.context`, `permission` (when not already defined)
+ */
 class AccountingServiceProvider extends ServiceProvider
 {
     public function register(): void

@@ -2,6 +2,14 @@
 
 namespace Abdiaziizaweis\Accounting\Registry;
 
+/**
+ * In-memory catalog of document types the host application can post to accounting.
+ *
+ * Register entries from {@see \Illuminate\Support\ServiceProvider::boot()} before
+ * running {@see \Abdiaziizaweis\Accounting\Console\BootstrapCommand}. The mapping
+ * seeder creates {@see \Abdiaziizaweis\Accounting\Models\AccountingDocumentMapping}
+ * rows using each entry's default debit/credit {@see key_name} accounts from the CoA.
+ */
 class DocumentRegistry
 {
     /**
@@ -17,6 +25,17 @@ class DocumentRegistry
      */
     protected static array $documents = [];
 
+    /**
+     * Register a document type for bootstrap seeding and the registry API.
+     *
+     * @param  string  $module  Module key (e.g. `sales`, `inventory`).
+     * @param  string  $documentType  Mapping key within the module (e.g. `invoice`, `payment`).
+     * @param  string  $label  Display label for admin UIs.
+     * @param  string  $defaultDebit  CoA account `key_name` for the default debit side.
+     * @param  string  $defaultCredit  CoA account `key_name` for the default credit side.
+     * @param  bool  $hasTax  Hint for UIs; invoice types may use tax splitting when configured.
+     * @param  bool  $hasDiscount  Hint for UIs; invoice types may use discount splitting.
+     */
     public static function register(
         string $module,
         string $documentType,
@@ -56,6 +75,8 @@ class DocumentRegistry
     }
 
     /**
+     * Look up one registered document by module and document type.
+     *
      * @return array{
      *     module: string,
      *     document_type: string,
@@ -72,6 +93,8 @@ class DocumentRegistry
     }
 
     /**
+     * All registrations grouped by module, sorted for stable API output.
+     *
      * @return array<string, list<array{
      *     module: string,
      *     document_type: string,
@@ -99,6 +122,7 @@ class DocumentRegistry
         return $grouped;
     }
 
+    /** Clear all registrations (tests only). */
     public static function clear(): void
     {
         self::$documents = [];
