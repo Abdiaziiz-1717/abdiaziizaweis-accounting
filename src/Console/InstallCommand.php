@@ -12,7 +12,7 @@ class InstallCommand extends Command
 {
     protected $signature = 'accounting:install';
 
-    protected $description = 'Install the JTech Accounting package (config, bindings, migrations, bootstrap)';
+    protected $description = 'Install the Abdiaziizaweis Accounting package (config, bindings, migrations, bootstrap)';
 
   /** @var array<string, class-string> */
     protected array $resolverMap = [
@@ -115,9 +115,9 @@ class InstallCommand extends Command
     protected function showBanner(): void
     {
         $this->newLine();
-        $this->line('  ┌─────────────────────────────────┐');
-        $this->line('  │   JTech Accounting Installer    │');
-        $this->line('  └─────────────────────────────────┘');
+        $this->line('  ┌──────────────────────────────────────────┐');
+        $this->line('  │   Abdiaziiz aweis Accounting Installer   │');
+        $this->line('  └──────────────────────────────────────────┘');
         $this->newLine();
     }
 
