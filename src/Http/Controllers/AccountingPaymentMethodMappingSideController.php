@@ -5,12 +5,15 @@ namespace Abdiaziizaweis\Accounting\Http\Controllers;
 use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
 use Abdiaziizaweis\Accounting\Models\AccountingPaymentMethodMapping;
 use Abdiaziizaweis\Accounting\Models\AccountingPaymentMethodMappingSide;
+use Abdiaziizaweis\Accounting\Http\Traits\ApiResponseTrait;
 use Abdiaziizaweis\Accounting\Services\AccountingMappingResolver;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Validation\Rule;
 
-class AccountingPaymentMethodMappingSideController extends BaseController
+class AccountingPaymentMethodMappingSideController extends Controller
 {
+    use ApiResponseTrait;
     public function index(int $id)
     {
         $mapping = $this->findMapping($id);

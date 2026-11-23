@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.3] - 2026-11-23
+
+- Fix `AccountingPaymentMethodMappingSideController` PHP 8.3 LSP fatals on `route:list` (extend `Controller` + `ApiResponseTrait` instead of overriding `BaseController` CRUD signatures)
+
 ## [1.0.2] - 2026-11-23
 
 - CLI `accounting:bootstrap` works without an authenticated user (`userOrNull()`, optional `--user-id=`)
