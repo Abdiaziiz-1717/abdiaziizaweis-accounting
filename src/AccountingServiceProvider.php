@@ -123,10 +123,33 @@ class AccountingServiceProvider extends ServiceProvider
     protected function registerPermissionMiddlewareAlias(): void
     {
         $router = $this->app['router'];
-        $aliases = method_exists($router, 'getMiddleware') ? $router->getMiddleware() : [];
 
-        if (! array_key_exists('permission', $aliases)) {
+        if (! $this->middlewareAliasExists($router, 'permission')) {
             $router->aliasMiddleware('permission', AccountingPermissionMiddleware::class);
         }
+    }
+
+    /**
+     * Detect whether a route middleware alias is already registered (Laravel 11–13 router APIs).
+     *
+     * @param  \Illuminate\Contracts\Routing\Registrar|\Illuminate\Routing\Router  $router
+     */
+    protected function middlewareAliasExists(object $router, string $alias): bool
+    {
+        if (method_exists($router, 'getMiddleware')) {
+            $aliases = $router->getMiddleware();
+            if (is_array($aliases) && array_key_exists($alias, $aliases)) {
+                return true;
+            }
+        }
+
+        if (method_exists($router, 'getMiddlewareAliases')) {
+            $aliases = $router->getMiddlewareAliases();
+            if (is_array($aliases) && array_key_exists($alias, $aliases)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

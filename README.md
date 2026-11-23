@@ -44,7 +44,7 @@ Reusable **double-entry accounting** for Laravel apps: chart of accounts (CoA), 
 | Requirement | Version |
 |-------------|---------|
 | PHP | **8.2+** (`^8.2`) |
-| Laravel | **11.x** (`^11.0`) |
+| Laravel | **11, 12, or 13** (`^11.0`, `^12.0`, or `^13.0`) |
 | Auth (typical) | Laravel Sanctum (`auth:sanctum` on API routes) |
 
 Host apps need `users`, and—depending on tenancy—`organizations`, `branches`, `payment_methods`, and `expense_categories` tables (names configurable).

@@ -2,7 +2,7 @@
 
 ## 1. What this package is
 
-Composer package **`abdiaziizaweis/accounting`** (`Abdiaziizaweis\Accounting`) for **Laravel 11** / **PHP 8.2+**. It provides:
+Composer package **`abdiaziizaweis/accounting`** (`Abdiaziizaweis\Accounting`) for **Laravel 11, 12, or 13** / **PHP 8.2+**. It provides:
 
 - Tenant/branch-scoped **chart of accounts**
 - **Accounting transactions** (morph-linked to host documents)
@@ -55,6 +55,8 @@ Host apps integrate by implementing `AccountingDocumentInterface` and registerin
 ---
 
 ## 3. Installation and setup
+
+**Supported stack:** PHP `^8.2` with Laravel `^11.0`, `^12.0`, or `^13.0` (see `composer.json`). Laravel 13 applications typically require PHP 8.3+ per the framework; this package remains installable on PHP 8.2 when used with Laravel 11 or 12.
 
 1. `composer require abdiaziizaweis/accounting`
 2. `php artisan accounting:install` **or** publish config + `migrate` + `accounting:bootstrap`
@@ -574,4 +576,4 @@ class CustomProfitAndLossReport implements AccountingReportInterface
 
 ---
 
-*Package version context: Laravel 11, PHP 8.2+, void-based tx/JE lifecycle, reconcile feature removed in migration `2026_09_09_110000_drop_reconcile`.*
+*Package version context: Laravel 11–13, PHP 8.2+, void-based tx/JE lifecycle, reconcile feature removed in migration `2026_09_09_110000_drop_reconcile`.*
