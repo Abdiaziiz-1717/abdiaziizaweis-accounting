@@ -1,5 +1,7 @@
 # abdiaziizaweis/accounting — Complete Reference
 
+**v2 is a breaking release.** The package is a double-entry engine. It does not seed document mappings, does not require industry modules, and does not split tax or discount. Hosts name operation keys and save mapping lines in their own UI. The package does not ship pages — see [UI_STRUCTURE.md](UI_STRUCTURE.md).
+
 For UI implementation guidance see [UI_STRUCTURE.md](UI_STRUCTURE.md).
 
 ## 1. What this package is
@@ -60,7 +62,7 @@ Host apps integrate by implementing `AccountingDocumentInterface` and registerin
 
 **Supported stack:** PHP `^8.2` with Laravel `^11.0`, `^12.0`, or `^13.0` (see `composer.json`). Laravel 13 applications typically require PHP 8.3+ per the framework; this package remains installable on PHP 8.2 when used with Laravel 11 or 12.
 
-1. `composer require abdiaziizaweis/accounting:^1.0.1` (use **1.0.2+** for MySQL + CLI bootstrap fixes; avoid **1.0.0** on Laravel 13)
+1. `composer require abdiaziizaweis/accounting:^2.0`
 2. `php artisan accounting:install` **or** publish config + `migrate` + `accounting:bootstrap`
 3. Register `DocumentRegistry::register(...)` entries in `AppServiceProvider::boot()`
 4. Re-run `php artisan accounting:bootstrap [--force]` after new registry entries
@@ -84,6 +86,18 @@ Does not require login. Optional `owner_user_id` on seeded rows: pass `--user-id
 2. Define Laravel `Gate::define()` (or similar) for accounting permission strings — default is deny without Gates  
 3. Register **purchase** invoice/payment in `DocumentRegistry` if you use AP (builtin registry is sales/service/parts only)  
 4. `php artisan accounting:bootstrap` (no session); `--user-id=1` only if you want ownership stamped on seeds  
+5. Save operation lines in your UI before expecting journals  
+
+**Operation mapping API**
+
+| Method | Path | Body |
+|--------|------|------|
+| GET | `{prefix}/registry/documents` | Catalog only. No rows inserted. |
+| GET | `{prefix}/operations` | Catalog merged with saved lines |
+| GET | `{prefix}/operations/{operationKey}` | One operation. Dots are allowed (`sale.recorded`). |
+| PUT | `{prefix}/operations/{operationKey}` | `{ "label", "is_enabled", "lines": [{ "account_key"\|"account_id", "side": "debit"\|"credit", "amount_source", "skip_when_zero" }] }` |
+
+PUT enables the operation only when there are at least two lines and each `amount_source` has the same number of debit and credit lines. Posting reads the document payload. Missing or unbalanced maps leave the transaction `not_mapped` and do not create a journal. `tax_amount` and `discount_amount` are normal payload keys.
 
 **Default middleware stack**
 
@@ -321,7 +335,7 @@ Cache: `AccountingMappingResolver::forgetBranch($branchId)` after upsert/bootstr
 
 ## 13. Tax and discount splitting
 
-- Feature flags: `config('accounting.features.tax_splitting')`, `discount_splitting`
+- There is no tax or discount splitting. Add mapping lines that read `tax_amount` or `discount_amount`.
 - Branch settings FKs to tax payable/receivable and sales/purchase discount accounts
 - CoA bootstrap wires defaults from `tax_payable`, `tax_receivable`, `sales_discounts`, `purchase_discounts` key_names when unset
 - Bridge `applySalesInvoiceSplit` / `applyPurchaseInvoiceSplit` for built-in invoice transaction types

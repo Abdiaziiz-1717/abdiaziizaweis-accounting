@@ -102,7 +102,7 @@ Deploy the package inside a Laravel app and call the HTTP API from any client la
 8. **Period controls** — Close books through `closing_date`; posting, voiding, journals, and transfers are blocked for dates on or before the close (see `AccountingPeriodGuard`).
 9. **Pluggable audit logging** — Implement `AccountingAuditInterface` (or use `NullAccountingAudit` / `SpatieAccountingAudit`) so host apps can record audit events for transactions, journals, and transfers.
 10. **Extensible reports** — Register custom reports or override built-in ones via `AccountingReportRegistry` without editing package source.
-11. **Dynamic multi-line journal entries** — Documents implement `getJournalLines()` with `JournalLine` value objects for COGS, payroll, multi-tax, or any N-line posting (see [KNOWLEDGE.md §23](docs/KNOWLEDGE.md)).
+11. **Operation mapping lines** — the host UI saves any number of debit/credit lines per operation key. Amounts come from the document payload (`amount`, `cost`, `tax_amount`, …). `getJournalLines()` is an escape hatch.
 
 **Payment methods are optional** on all document types — when `getPaymentMethodId()` is null, auto-map falls back to **document mapping** (`module` + `document_type`).
 
@@ -125,10 +125,10 @@ public function getJournalLines(): ?array
 ### 1. Composer
 
 ```bash
-composer require abdiaziizaweis/accounting:^1.0.1
+composer require abdiaziizaweis/accounting:^2.0
 ```
 
-Use **1.0.1** or newer (Laravel 13, single-tenant, MySQL fixes in **1.0.2**). Tag **1.0.0** only supports Laravel 11.
+**2.0** does not seed mappings and does not auto-split tax or discount. Configure operation lines in your UI. 1.x tags keep the old two-account maps.
 
 Laravel auto-discovers `Abdiaziizaweis\Accounting\AccountingServiceProvider`.
 
@@ -357,9 +357,8 @@ php artisan accounting:bootstrap
 **Does:**
 
 1. Seeds CoA via `AccountingCoaSeeder::seedDefaultsForBranch` (idempotent `key_name` accounts).
-2. Seeds document mappings from `DocumentRegistry::all()`.
-3. Seeds payment-method and expense-category mappings when host models expose `seedDefaultsForOrganization`.
-4. Clears mapping cache for the branch when branch-scoped.
+2. Does not seed operation mappings. The host saves those in the mapping UI.
+3. Does not seed payment-method or expense-category mappings.
 
 **Requires:** Valid org ID when `usesOrganizationId()`; valid branch ID when `usesBranchId()`.
 
@@ -375,8 +374,7 @@ HTTP equivalent: **POST** `{prefix}/bootstrap` with optional `force=1` (permissi
 | `fy_start` | `1` | First month of fiscal year (1–12) |
 | `route_prefix` | `api/v1/accounting` | API URL prefix |
 | `middleware` | `auth`, `ResolveAccountingContext` | Route middleware stack (use `auth:sanctum`, `auth:api`, etc. as needed) |
-| `features.tax_splitting` | `true` | Bootstrap wires tax accounts into branch settings when CoA seeds |
-| `features.discount_splitting` | `true` | Bootstrap wires discount accounts into branch settings |
+| Operation mappings | none seeded | Host `PUT /operations/{key}` after bootstrap |
 | `auth.guard` | `DefaultAccountingAuth::class` | `AccountingAuthInterface` implementation |
 | `audit.driver` | `NullAccountingAudit::class` | `AccountingAuditInterface` implementation (`SpatieAccountingAudit` or a custom class) |
 | `models.user` | `App\Models\User` | User model FQCN |
@@ -470,16 +468,17 @@ Statuses (`AccountingJournalEntryStatus`):
 **Delete API:** Calls `voidEntry` — does not hard-delete.
 
 
-## Tax and discount splitting
+## Operation mappings (v2)
 
-1. **Config:** `features.tax_splitting` / `features.discount_splitting` — when true, bootstrap links CoA `tax_payable`, `tax_receivable`, `sales_discounts`, `purchase_discounts` on `accounting_branch_settings`.
-2. **Settings API:** PATCH `{prefix}/settings` can set `tax_payable_account_id`, `tax_receivable_account_id`, `sales_discount_account_id`, `purchase_discount_account_id`.
-3. **Snapshots:** `tax_amount` and `discount_amount` on `accounting_transactions`.
-4. **N-line JEs:** Built-in invoice types (`hotel_invoice`, `restaurant_invoice`, `event_invoice`, `purchase_invoice`) split AR/sales or inventory/AP when settings accounts exist. Otherwise plain two-line map.
+Bootstrap creates accounts only. Posting uses lines you save:
 
-Sales split (simplified): DR AR (total); CR sales (net); CR tax payable; DR sales discounts.
+`PUT {prefix}/operations/{operationKey}` with `lines[]` of `account_key` or `account_id`, `side` (`debit`|`credit`), `amount_source` (`amount`, `tax_amount`, `discount_amount`, `cost`, …), optional `skip_when_zero`.
 
-Purchase split: DR inventory (net); DR tax receivable; CR purchase discounts; CR AP (total).
+At least two lines. Each amount source needs the same number of debit and credit lines. Otherwise the save is rejected, or a later unbalanced payload stays `not_mapped`.
+
+`GET {prefix}/operations` and `GET {prefix}/registry/documents` feed the mapping screen. The registry does not insert rows.
+
+`getJournalLines()` is an escape hatch. Tax, discount, and COGS belong in mapping lines plus payload keys. Settings cover fiscal year and close books only.
 
 
 ## Troubleshooting

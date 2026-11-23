@@ -16,10 +16,6 @@ return [
     | Any custom middleware your app registers
     */
     'middleware' => [{{MIDDLEWARE}}],
-    'features' => [
-        'tax_splitting' => {{TAX_SPLITTING}},
-        'discount_splitting' => {{DISCOUNT_SPLITTING}},
-    ],
     'auth' => [
         'guard' => \Abdiaziizaweis\Accounting\Auth\DefaultAccountingAuth::class,
     ],

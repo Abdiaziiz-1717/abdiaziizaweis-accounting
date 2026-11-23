@@ -7,6 +7,7 @@ use Abdiaziizaweis\Accounting\Enums\AccountingTransactionStatus;
 use Abdiaziizaweis\Accounting\Models\AccountingAccount;
 use Abdiaziizaweis\Accounting\Models\AccountingBranchSetting;
 use Abdiaziizaweis\Accounting\Models\AccountingDocumentMapping;
+use Abdiaziizaweis\Accounting\Models\AccountingOperationMapping;
 use Abdiaziizaweis\Accounting\Models\AccountingExpenseCategoryMapping;
 use Abdiaziizaweis\Accounting\Models\AccountingJournalEntry;
 use Abdiaziizaweis\Accounting\Models\AccountingPaymentMethodMapping;
@@ -49,7 +50,14 @@ class AccountingHealthController extends Controller
             )
             ->first();
 
-        $disabledMappings = (int) AccountingDocumentMapping::withoutGlobalScopes()
+        $enabledOperationMappings = (int) AccountingOperationMapping::withoutGlobalScopes()
+            ->where('is_enabled', true)
+            ->count();
+
+        $disabledMappings = (int) AccountingOperationMapping::withoutGlobalScopes()
+            ->where('is_enabled', false)
+            ->count();
+        $disabledMappings += (int) AccountingDocumentMapping::withoutGlobalScopes()
             ->where('is_enabled', false)
             ->count();
         $disabledMappings += (int) AccountingPaymentMethodMapping::withoutGlobalScopes()
@@ -63,10 +71,17 @@ class AccountingHealthController extends Controller
             ->whereNull('deleted_at')
             ->count();
 
-        $status = $this->deriveStatus($unmappedCount, $oldestUnmappedDays, $disabledMappings);
+        $awaitingHostMappings = $enabledOperationMappings === 0;
+        $status = $awaitingHostMappings
+            ? 'ok'
+            : $this->deriveStatus($unmappedCount, $oldestUnmappedDays, $disabledMappings);
 
         return $this->successResponse([
             'status' => $status,
+            'mappings_configured' => ! $awaitingHostMappings,
+            'note' => $awaitingHostMappings
+                ? 'No enabled operation mappings yet. Unmapped transactions are expected until the host saves mapping lines.'
+                : null,
             'unmapped_transactions' => $unmappedCount,
             'oldest_unmapped_days' => $oldestUnmappedDays,
             'last_journal_entry_date' => $lastJournalDate

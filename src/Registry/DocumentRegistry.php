@@ -3,140 +3,42 @@
 namespace Abdiaziizaweis\Accounting\Registry;
 
 /**
- * In-memory catalog of document types the host application can post to accounting.
- *
- * Register entries from {@see \Illuminate\Support\ServiceProvider::boot()} before
- * running {@see \Abdiaziizaweis\Accounting\Console\BootstrapCommand}. The mapping
- * seeder creates {@see \Abdiaziizaweis\Accounting\Models\AccountingDocumentMapping}
- * rows using each entry's default debit/credit {@see key_name} accounts from the CoA.
+ * Optional host catalog of operation keys and the payload keys they send.
+ * Registration does not insert mapping rows. The mapping UI uses this list
+ * for dropdowns. Posting uses saved operation mapping lines only.
  */
 class DocumentRegistry
 {
     /**
-     * @var array<string, array{
-     *     module: string,
-     *     document_type: string,
-     *     label: string,
-     *     default_debit: string,
-     *     default_credit: string,
-     *     has_tax: bool,
-     *     has_discount: bool,
-     *     uses_custom_lines: bool
-     * }>
+     * @var array<string, array{operation_key: string, label: string, amount_sources: list<string>}>
      */
-    protected static array $documents = [];
+    protected static array $operations = [];
 
     /**
-     * Register a document type for bootstrap seeding and the registry API.
-     *
-     * @param  string  $module  Module key (e.g. `sales`, `inventory`).
-     * @param  string  $documentType  Mapping key within the module (e.g. `invoice`, `payment`).
-     * @param  string  $label  Display label for admin UIs.
-     * @param  string  $defaultDebit  CoA account `key_name` for the default debit side.
-     * @param  string  $defaultCredit  CoA account `key_name` for the default credit side.
-     * @param  bool  $hasTax  Hint for UIs; invoice types may use tax splitting when configured.
-     * @param  bool  $hasDiscount  Hint for UIs; invoice types may use discount splitting.
-     * @param  bool  $usesCustomLines  When true, UI treats mapping as "Managed in code" ({@see AccountingDocumentInterface::getJournalLines()}).
+     * @param  list<string>  $amountSources
      */
     public static function register(
-        string $module,
-        string $documentType,
+        string $operationKey,
         string $label,
-        string $defaultDebit = 'accounts_receivable',
-        string $defaultCredit = 'uncategorised_income',
-        bool $hasTax = false,
-        bool $hasDiscount = false,
-        bool $usesCustomLines = false,
+        array $amountSources = ['amount'],
     ): void {
-        $key = self::key($module, $documentType);
-
-        self::$documents[$key] = [
-            'module' => $module,
-            'document_type' => $documentType,
+        self::$operations[$operationKey] = [
+            'operation_key' => $operationKey,
             'label' => $label,
-            'default_debit' => $defaultDebit,
-            'default_credit' => $defaultCredit,
-            'has_tax' => $hasTax,
-            'has_discount' => $hasDiscount,
-            'uses_custom_lines' => $usesCustomLines,
+            'amount_sources' => array_values(array_unique($amountSources)),
         ];
     }
 
     /**
-     * @return list<array{
-     *     module: string,
-     *     document_type: string,
-     *     label: string,
-     *     default_debit: string,
-     *     default_credit: string,
-     *     has_tax: bool,
-     *     has_discount: bool,
-     *     uses_custom_lines: bool
-     * }>
+     * @return list<array{operation_key: string, label: string, amount_sources: list<string>}>
      */
     public static function all(): array
     {
-        return array_values(self::$documents);
+        return array_values(self::$operations);
     }
 
-    /**
-     * Look up one registered document by module and document type.
-     *
-     * @return array{
-     *     module: string,
-     *     document_type: string,
-     *     label: string,
-     *     default_debit: string,
-     *     default_credit: string,
-     *     has_tax: bool,
-     *     has_discount: bool,
-     *     uses_custom_lines: bool
-     * }|null
-     */
-    public static function find(string $module, string $documentType): ?array
+    public static function forget(): void
     {
-        return self::$documents[self::key($module, $documentType)] ?? null;
-    }
-
-    /**
-     * All registrations grouped by module, sorted for stable API output.
-     *
-     * @return array<string, list<array{
-     *     module: string,
-     *     document_type: string,
-     *     label: string,
-     *     default_debit: string,
-     *     default_credit: string,
-     *     has_tax: bool,
-     *     has_discount: bool,
-     *     uses_custom_lines: bool
-     * }>>
-     */
-    public static function allGroupedByModule(): array
-    {
-        $grouped = [];
-
-        foreach (self::$documents as $document) {
-            $grouped[$document['module']][] = $document;
-        }
-
-        ksort($grouped);
-
-        foreach ($grouped as $module => $documents) {
-            usort($grouped[$module], fn (array $a, array $b) => strcmp($a['document_type'], $b['document_type']));
-        }
-
-        return $grouped;
-    }
-
-    /** Clear all registrations (tests only). */
-    public static function clear(): void
-    {
-        self::$documents = [];
-    }
-
-    protected static function key(string $module, string $documentType): string
-    {
-        return strtolower($module).':'.strtolower($documentType);
+        self::$operations = [];
     }
 }

@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.0] - 2026-11-23
+
+Breaking:
+
+- Bootstrap seeds the chart of accounts only. No document, payment-method, or expense-category mappings.
+- Builtin industry modules are not required. Hosts use any operation key string.
+- Posting uses stored multi-line operation mappings and payload amount sources (`amount`, `tax_amount`, `discount_amount`, `cost`, …).
+- Automatic tax and discount invoice splitting is removed, including branch-setting tax/discount account columns and `features.tax_splitting` / `features.discount_splitting`.
+- `getJournalLines()` remains an explicit escape hatch. The normal path does not need PHP journal code.
+- `PUT /operations/{operationKey}` replaces two-account document mapping upserts.
+
 ## [1.0.3] - 2026-11-23
 
 - Fix `AccountingPaymentMethodMappingSideController` PHP 8.3 LSP fatals on `route:list` (extend `Controller` + `ApiResponseTrait` instead of overriding `BaseController` CRUD signatures)

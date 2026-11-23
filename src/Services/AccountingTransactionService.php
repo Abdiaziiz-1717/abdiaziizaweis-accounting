@@ -24,6 +24,7 @@ class AccountingTransactionService
         protected AccountingJournalService $journals,
         protected AccountingMappingResolver $resolver,
         protected AccountingPeriodGuard $periodGuard,
+        protected OperationMappingCompiler $operationMappings,
     ) {}
 
     /**
@@ -96,8 +97,10 @@ class AccountingTransactionService
                             ? $newDate->toDateString()
                             : (string) $newDate));
 
+                $payloadChanged = json_encode($existing->payload ?? null) !== json_encode($attributes['payload'] ?? null);
+
                 // Economic edit → void + new tx (source of truth).
-                if ($amountChanged || $dateChanged || $taxChanged || $discountChanged) {
+                if ($amountChanged || $dateChanged || $taxChanged || $discountChanged || $payloadChanged) {
                     $payload = $this->buildPayload($orgId, $branchId, $transactionable, $attributes, $existing);
                     $payload['status'] = AccountingTransactionStatus::NotMapped;
                     $tx = AccountingTransaction::withoutGlobalScopes()->create($payload);
@@ -223,52 +226,27 @@ class AccountingTransactionService
             return $tx;
         }
 
-        $hasExplicitAccounts = ! empty($hints['debit_account_id']) && ! empty($hints['credit_account_id']);
-        if (! $hasExplicitAccounts
-            && in_array((string) $tx->type, [
-                'hotel_invoice',
-                'restaurant_invoice',
-                'event_invoice',
-                'purchase_invoice',
-                'saas_invoice',
-            ], true)
-            && app(AccountingDocumentBridge::class)->tryRemapInvoiceSplit($tx)
-        ) {
-            return $tx->fresh(['journalEntry.lines']);
+        if (! empty($hints['debit_account_id']) && ! empty($hints['credit_account_id'])) {
+            return $this->mapWithAccounts($tx, (int) $hints['debit_account_id'], (int) $hints['credit_account_id']);
         }
 
-        $module = $hints['module'] ?? null;
-        $documentType = $hints['document_type'] ?? null;
-        if ((! $module || ! $documentType) && ($inferred = $this->inferModuleAndDocumentType((string) $tx->type))) {
-            $module = $module ?: $inferred['module'];
-            $documentType = $documentType ?: $inferred['document_type'];
+        $payload = is_array($tx->payload) ? $tx->payload : [];
+        if (! array_key_exists('amount', $payload)) {
+            $payload['amount'] = (float) $tx->amount;
+        }
+        if (! array_key_exists('tax_amount', $payload)) {
+            $payload['tax_amount'] = (float) ($tx->tax_amount ?? 0);
+        }
+        if (! array_key_exists('discount_amount', $payload)) {
+            $payload['discount_amount'] = (float) ($tx->discount_amount ?? 0);
         }
 
-        $debitId = isset($hints['debit_account_id']) ? (int) $hints['debit_account_id'] : null;
-        $creditId = isset($hints['credit_account_id']) ? (int) $hints['credit_account_id'] : null;
-
-        if (! $debitId || ! $creditId) {
-            $paymentSide = (string) ($hints['payment_side'] ?? $module ?? 'sales');
-            $resolved = $this->resolver->resolve(
-                (int) $tx->organization_id,
-                (int) $tx->branch_id,
-                $module,
-                $documentType,
-                isset($hints['payment_method_id']) ? (int) $hints['payment_method_id'] : null,
-                isset($hints['expense_category_id']) ? (int) $hints['expense_category_id'] : null,
-                $paymentSide,
-            );
-            if ($resolved) {
-                $debitId = $resolved['debit_account_id'];
-                $creditId = $resolved['credit_account_id'];
-            }
-        }
-
-        if (! $debitId || ! $creditId) {
+        $compiled = $this->operationMappings->compile((string) $tx->type, $payload);
+        if ($compiled['status'] !== 'ready') {
             return $tx;
         }
 
-        return $this->mapWithAccounts($tx, $debitId, $creditId);
+        return $this->mapWithLines($tx, $compiled['lines']);
     }
 
     /**
@@ -465,6 +443,7 @@ class AccountingTransactionService
             'amount' => round((float) $attributes['amount'], 2),
             'tax_amount' => round((float) ($attributes['tax_amount'] ?? 0), 2),
             'discount_amount' => round((float) ($attributes['discount_amount'] ?? 0), 2),
+            'payload' => $attributes['payload'] ?? null,
             'transaction_date' => $attributes['transaction_date'],
             'description' => $attributes['description'] ?? null,
             'reference' => $attributes['reference'] ?? null,

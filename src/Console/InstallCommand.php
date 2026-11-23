@@ -30,8 +30,6 @@ class InstallCommand extends Command
             $tenancyMode,
             $currency,
             $fyStart,
-            $taxSplitting,
-            $discountSplitting,
             $routePrefix,
             $middlewareList,
             $organizationId,
@@ -52,8 +50,6 @@ class InstallCommand extends Command
             $tenancyMode,
             $currency,
             $fyStart,
-            $taxSplitting,
-            $discountSplitting,
             $routePrefix,
             $middlewareList,
         );
@@ -99,14 +95,11 @@ class InstallCommand extends Command
         $this->line('use Abdiaziizaweis\Accounting\Registry\DocumentRegistry;');
         $this->newLine();
         $this->line('DocumentRegistry::register(');
-        $this->line("    module:        'sales',");
-        $this->line("    documentType:  'sales_invoice',");
-        $this->line("    label:         'Sales Invoice',");
-        $this->line("    defaultDebit:  'accounts_receivable',");
-        $this->line("    defaultCredit: 'sales_revenue',");
-        $this->line('    hasTax:        true,');
-        $this->line('    hasDiscount:   true,');
+        $this->line("    operationKey: 'sale.recorded',");
+        $this->line("    label: 'Sale recorded',");
+        $this->line("    amountSources: ['amount', 'cost'],");
         $this->line(');');
+        $this->line('// Then save mapping lines in your UI (PUT /operations/sale.recorded). Bootstrap does not seed them.');
         $this->newLine();
         $this->line('Then run: php artisan accounting:bootstrap');
         $this->newLine();
@@ -127,7 +120,7 @@ class InstallCommand extends Command
     }
 
     /**
-     * @return array{0: string, 1: string, 2: int, 3: bool, 4: bool, 5: string, 6: array<int, string>, 7: ?int, 8: ?int}
+     * @return array{0: string, 1: string, 2: int, 3: string, 4: array<int, string>, 5: ?int, 6: ?int}
      */
     protected function gatherAnswers(): array
     {
@@ -143,9 +136,6 @@ class InstallCommand extends Command
 
         $fyStart = (int) $this->ask('Fiscal year start month (1-12)', '1');
         $fyStart = max(1, min(12, $fyStart));
-
-        $taxSplitting = (bool) $this->confirm('Enable tax splitting?', true);
-        $discountSplitting = (bool) $this->confirm('Enable discount splitting?', true);
 
         $routePrefix = (string) $this->ask('Route prefix', 'api/v1/accounting');
 
@@ -167,8 +157,6 @@ class InstallCommand extends Command
             $tenancyMode,
             $currency,
             $fyStart,
-            $taxSplitting,
-            $discountSplitting,
             $routePrefix,
             $middlewareList,
             $organizationId,
@@ -204,8 +192,6 @@ class InstallCommand extends Command
         string $tenancyMode,
         string $currency,
         int $fyStart,
-        bool $taxSplitting,
-        bool $discountSplitting,
         string $routePrefix,
         array $middlewareList,
     ): string {
@@ -219,8 +205,6 @@ class InstallCommand extends Command
             '{{TENANCY_MODE}}' => $tenancyMode,
             '{{CURRENCY}}' => addslashes($currency),
             '{{FY_START}}' => (string) $fyStart,
-            '{{TAX_SPLITTING}}' => $taxSplitting ? 'true' : 'false',
-            '{{DISCOUNT_SPLITTING}}' => $discountSplitting ? 'true' : 'false',
             '{{ROUTE_PREFIX}}' => addslashes($routePrefix),
             '{{MIDDLEWARE}}' => $middlewarePhp,
         ];

@@ -18,6 +18,12 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // SQLite cannot drop a column that still backs a foreign key by name.
+        // MySQL/MariaDB hosts take the path below.
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         // ── 1.  JE-lines table ────────────────────────────────────────────────
         // We need to be idempotent: previous failed runs may have partially
         // committed DDL (MySQL auto-commits each ALTER TABLE).
@@ -93,6 +99,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Restore accounting_reconciles table
         Schema::create('accounting_reconciles', function (Blueprint $table) {
             $table->id();
@@ -124,6 +134,10 @@ return new class extends Migration
 
     private function indexExists(string $table, string $indexName): bool
     {
+        if (! in_array(Schema::getConnection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+            return false;
+        }
+
         $rows = DB::select('
             SELECT 1 FROM INFORMATION_SCHEMA.STATISTICS
             WHERE TABLE_SCHEMA = DATABASE()

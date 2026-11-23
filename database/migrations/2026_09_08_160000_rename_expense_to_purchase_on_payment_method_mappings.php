@@ -15,26 +15,34 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('accounting_payment_method_mappings', function (Blueprint $table) {
-            $table->dropForeign('acct_pm_exp_debit_fk');
-            $table->dropForeign('acct_pm_exp_credit_fk');
-        });
+        if (Schema::getConnection()->getDriverName() !== 'sqlite') {
+            Schema::table('accounting_payment_method_mappings', function (Blueprint $table) {
+                $table->dropForeign('acct_pm_exp_debit_fk');
+                $table->dropForeign('acct_pm_exp_credit_fk');
+            });
+        }
 
         Schema::table('accounting_payment_method_mappings', function (Blueprint $table) {
             $table->renameColumn('expense_debit_account_id', 'purchase_debit_account_id');
             $table->renameColumn('expense_credit_account_id', 'purchase_credit_account_id');
         });
 
-        Schema::table('accounting_payment_method_mappings', function (Blueprint $table) {
-            $table->foreign('purchase_debit_account_id', 'acct_pm_purch_debit_fk')
-                ->references('id')->on('accounting_accounts')->restrictOnDelete();
-            $table->foreign('purchase_credit_account_id', 'acct_pm_purch_credit_fk')
-                ->references('id')->on('accounting_accounts')->restrictOnDelete();
-        });
+        if (Schema::getConnection()->getDriverName() !== 'sqlite') {
+            Schema::table('accounting_payment_method_mappings', function (Blueprint $table) {
+                $table->foreign('purchase_debit_account_id', 'acct_pm_purch_debit_fk')
+                    ->references('id')->on('accounting_accounts')->restrictOnDelete();
+                $table->foreign('purchase_credit_account_id', 'acct_pm_purch_credit_fk')
+                    ->references('id')->on('accounting_accounts')->restrictOnDelete();
+            });
+        }
     }
 
     public function down(): void
     {
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         Schema::table('accounting_payment_method_mappings', function (Blueprint $table) {
             $table->dropForeign('acct_pm_purch_debit_fk');
             $table->dropForeign('acct_pm_purch_credit_fk');

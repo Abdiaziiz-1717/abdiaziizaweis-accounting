@@ -3,29 +3,36 @@
 namespace Abdiaziizaweis\Accounting\Concerns;
 
 /**
- * Default optional {@see \Abdiaziizaweis\Accounting\Contracts\AccountingDocumentInterface}
- * helpers. Applied by {@see HasAccountingDocument}.
+ * Optional {@see \Abdiaziizaweis\Accounting\Contracts\AccountingDocumentInterface} helpers.
  */
 trait HasDefaultDocumentMethods
 {
-    public function getPaymentMethodId(): ?int
-    {
-        return null;
-    }
-
-    public function getExpenseCategoryId(): ?int
-    {
-        return null;
-    }
-
     public function getOwnerUserId(): ?int
     {
         return null;
     }
 
-    public function getPaymentSide(): string
+    public function getCurrency(): string
     {
-        return $this->getDocumentModule();
+        return (string) config('accounting.currency', 'USD');
+    }
+
+    public function getReference(): ?string
+    {
+        return null;
+    }
+
+    public function getDescription(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * @return array<string, float|int|string|null>
+     */
+    public function getAccountingPayload(): array
+    {
+        return ['amount' => 0];
     }
 
     /**

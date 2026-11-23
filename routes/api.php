@@ -15,6 +15,7 @@ use Abdiaziizaweis\Accounting\Http\Controllers\AccountingSettingsController;
 use Abdiaziizaweis\Accounting\Http\Controllers\AccountingTransactionController;
 use Abdiaziizaweis\Accounting\Http\Controllers\AccountingTransferController;
 use Abdiaziizaweis\Accounting\Http\Controllers\DocumentRegistryController;
+use Abdiaziizaweis\Accounting\Http\Controllers\OperationMappingController;
 
 Route::get('/registry/documents', [DocumentRegistryController::class, 'index']);
 
@@ -76,6 +77,15 @@ Route::post('/transactions/{id}/map', [AccountingTransactionController::class, '
     ->middleware('permission:edit accounting transactions');
 Route::post('/transactions/{id}/unmap', [AccountingTransactionController::class, 'unmap'])
     ->middleware('permission:edit accounting transactions');
+
+Route::get('/operations', [OperationMappingController::class, 'index'])
+    ->middleware('permission:view accounting mappings');
+Route::get('/operations/{operationKey}', [OperationMappingController::class, 'show'])
+    ->where('operationKey', '.*')
+    ->middleware('permission:view accounting mappings');
+Route::put('/operations/{operationKey}', [OperationMappingController::class, 'replace'])
+    ->where('operationKey', '.*')
+    ->middleware('permission:edit accounting mappings');
 
 Route::get('/document-mappings', [AccountingDocumentMappingController::class, 'index'])
     ->middleware('permission:view accounting mappings');

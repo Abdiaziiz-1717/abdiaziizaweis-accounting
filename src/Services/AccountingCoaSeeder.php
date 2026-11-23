@@ -170,41 +170,6 @@ class AccountingCoaSeeder
             $create('Transport Expense', AccountingAccountType::Expenses, 'transport_expense', 'expenses_parent', '6800');
             $create('Bank Charges', AccountingAccountType::Expenses, 'bank_charges', 'expenses_parent', '6850');
             $create('Uncategorised Expense', AccountingAccountType::OtherExpense, 'uncategorised_expense', 'expenses_parent', '6900');
-
-            // Wire tax / discount split settings when unset
-            $settingsQuery = AccountingBranchSetting::withoutGlobalScopes();
-            if (TenancySchemaHelper::usesBranchId()) {
-                $settingsQuery->where('branch_id', $branchId);
-            } elseif (TenancySchemaHelper::usesOrganizationId()) {
-                $settingsQuery->where('organization_id', $organizationId);
-            }
-            $settings = $settingsQuery->first();
-
-            if ($settings) {
-                $patch = [];
-                $taxSplitting = (bool) config('accounting.features.tax_splitting', true);
-                $discountSplitting = (bool) config('accounting.features.discount_splitting', true);
-
-                if ($taxSplitting) {
-                    if (! $settings->tax_payable_account_id && isset($byKey['tax_payable'])) {
-                        $patch['tax_payable_account_id'] = $byKey['tax_payable']->id;
-                    }
-                    if (! $settings->tax_receivable_account_id && isset($byKey['tax_receivable'])) {
-                        $patch['tax_receivable_account_id'] = $byKey['tax_receivable']->id;
-                    }
-                }
-                if ($discountSplitting) {
-                    if (! $settings->sales_discount_account_id && isset($byKey['sales_discounts'])) {
-                        $patch['sales_discount_account_id'] = $byKey['sales_discounts']->id;
-                    }
-                    if (! $settings->purchase_discount_account_id && isset($byKey['purchase_discounts'])) {
-                        $patch['purchase_discount_account_id'] = $byKey['purchase_discounts']->id;
-                    }
-                }
-                if ($patch !== []) {
-                    $settings->forceFill($patch)->save();
-                }
-            }
         });
     }
 

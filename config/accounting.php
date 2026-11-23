@@ -38,11 +38,6 @@ return [
         ResolveAccountingContext::class,
     ],
 
-    'features' => [
-        'tax_splitting' => true,
-        'discount_splitting' => true,
-    ],
-
     'auth' => [
         'guard' => DefaultAccountingAuth::class,
     ],

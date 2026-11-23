@@ -12,7 +12,6 @@ use Abdiaziizaweis\Accounting\Context\MultiTenantContextResolver;
 use Abdiaziizaweis\Accounting\Context\MultiTenantMultiBranchContextResolver;
 use Abdiaziizaweis\Accounting\Context\SingleTenantContextResolver;
 use Abdiaziizaweis\Accounting\Database\Migration\TenancySchemaHelper;
-use Abdiaziizaweis\Accounting\Registry\BuiltinDocumentRegistry;
 use Abdiaziizaweis\Accounting\Audit\NullAccountingAudit;
 use Abdiaziizaweis\Accounting\Contracts\AccountingAuditInterface;
 use Abdiaziizaweis\Accounting\Contracts\AccountingAuthInterface;
@@ -22,6 +21,8 @@ use Abdiaziizaweis\Accounting\Http\Middleware\ResolveAccountingContext;
 use Abdiaziizaweis\Accounting\Services\AccountingDocumentBridge;
 use Abdiaziizaweis\Accounting\Services\AccountingJournalService;
 use Abdiaziizaweis\Accounting\Services\JournalLineResolver;
+use Abdiaziizaweis\Accounting\Services\OperationMappingCompiler;
+use Abdiaziizaweis\Accounting\Services\OperationMappingService;
 use Abdiaziizaweis\Accounting\Services\AccountingMappingResolver;
 use Abdiaziizaweis\Accounting\Services\AccountingPeriodGuard;
 use Abdiaziizaweis\Accounting\Services\AccountingReportService;
@@ -82,6 +83,8 @@ class AccountingServiceProvider extends ServiceProvider
         $this->app->singleton(AccountingReportService::class);
         $this->app->singleton(AccountingPeriodGuard::class);
         $this->app->singleton(JournalLineResolver::class);
+        $this->app->singleton(OperationMappingCompiler::class);
+        $this->app->singleton(OperationMappingService::class);
     }
 
     public function boot(): void
@@ -105,7 +108,6 @@ class AccountingServiceProvider extends ServiceProvider
 
         $this->registerMiddlewareAliases();
         $this->registerPermissionMiddlewareAlias();
-        BuiltinDocumentRegistry::register();
         $this->loadRoutes();
     }
 

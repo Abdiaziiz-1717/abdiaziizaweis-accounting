@@ -2,11 +2,24 @@
 
 ## Overview
 
-This document describes the recommended UI structure for the accounting module. It is framework-agnostic — you can implement it in React, Vue, Angular, Blade, or any other UI technology.
+**This package does not ship Blade or React pages.** It ships a JSON API. Every host builds its own UI.
 
-The structure is based on a proven production implementation (MAAMUUS / Hotel–Restaurant accounting UI: chart of accounts, transactions, journal entries, transfers, mapping setup, settings, and six financial reports).
+Use the hotel app only as a **visual reference** for page set and layout (do not copy its posting rules, tax splits, or seeded mappings into your app):
 
-Every page communicates with the package HTTP API documented in [KNOWLEDGE.md](KNOWLEDGE.md).
+- `C:\projects\Hotel-restaurent-\resources\js\src\pages\accounting\`
+- `C:\projects\Hotel-restaurent-\docs\accounting-module.md`
+
+Build these screens against the API in [KNOWLEDGE.md](KNOWLEDGE.md):
+
+- Chart of accounts
+- Transactions (list, detail, unmapped, map, unmap, bulk map)
+- Journal entries (list + manual balanced entry)
+- Transfers
+- Mapping setup (operation lines — the important screen)
+- Reports: trial balance, P&L, balance sheet, cash flow, account statement, journal activity by month
+- Settings: fiscal year, accounting method, close books (no tax/discount account settings)
+
+The host names its own operations (`sale.recorded`, `purchase.recorded`, …). After bootstrap the mapping screen is empty. Nothing posts until the user saves at least two balanced lines.
 
 **API base path:** `/{route_prefix}` — default `api/v1/accounting` (`config('accounting.route_prefix')`). All paths below are relative to that prefix unless noted.
 
@@ -34,8 +47,7 @@ Accounting
 ├── Transfers                            [view accounting transfers]
 ├── Mapping setup                        [view accounting mappings]
 ├── Settings                             [manage accounting settings]
-│   ├── General (FY, method, account numbers, period close)
-│   └── Tax & discount accounts (optional invoice split postings)
+│   └── General (FY, method, account numbers, period close)
 Reports (subsection — any report link requires one permission)
 ├── Profit & Loss                        [view accounting reports]
 ├── Balance Sheet                        [view accounting reports]
@@ -296,27 +308,28 @@ Accounting
 
 **Route suggestion:** `/accounting/mappings`
 
-**API (all pages):**
+This is the screen that turns host documents into journals. Bootstrap does not create rows here.
 
-- `GET /document-mappings`
-- `POST /document-mappings/upsert`
-- `GET /payment-method-mappings`
-- `POST /payment-method-mappings/upsert`
-- `GET /mappings/payment-methods/{id}/sides`
-- `POST|PUT|DELETE` sides under `/mappings/payment-methods/{id}/sides`
-- `GET /expense-category-mappings`
-- `POST /expense-category-mappings/upsert`
-- `GET /registry/documents` — document types per module (no extra permission)
-- `GET /accounts` — selectors
-- **Host (not package):** list payment methods & expense categories from your app’s APIs/models
+**API:**
+
+- `GET /registry/documents` — optional catalog the host registered in PHP (operation key + amount sources). Does not insert mappings.
+- `GET /operations` — saved mappings merged with that catalog
+- `GET /operations/{operationKey}` — one operation (`sale.recorded`)
+- `PUT /operations/{operationKey}` — replace lines
+- `GET /accounts` — account selectors
+- Payment-method and expense-category endpoints remain optional and are **not** used to auto-post
 
 **Permission:** `view accounting mappings`; saves → `edit accounting mappings`
 
-#### 2.12.1 Document Mappings (dynamic — from registry)
+#### 2.12.1 Operation lines
 
-Module tabs: build from `GET /registry/documents` (group by `module`). Each row: human label (`document_type`), **enable**, **debit account**, **credit account**. Save per tab or batch upsert.
+One card per operation key. Each line: account (`account_key` or account id), side (`debit` or `credit`), amount source (`amount`, `tax_amount`, `discount_amount`, `cost`, or any payload key), skip when zero.
 
-When `uses_custom_lines` is **true** (or `posting_mode` = `custom_lines`), show **Managed in code** — hide debit/credit editors; journal lines come from the host’s `getJournalLines()` implementation.
+Enable only when there are at least two lines and each amount source has the same number of debit and credit lines. The API returns 422 otherwise.
+
+There is no tax/discount settings panel. Tax and discount are extra lines the host adds, reading `tax_amount` and `discount_amount` from the document payload.
+
+`getJournalLines()` is an escape hatch for rare code-owned entries. The normal path is this screen. Do not show “Managed in code” as the default.
 
 #### 2.12.2 Payment Method Mappings
 

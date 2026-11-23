@@ -322,9 +322,11 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('accounting_journal_entries', function (Blueprint $table) {
-            $table->dropForeign('acct_je_xfer_fk');
-        });
+        if (Schema::getConnection()->getDriverName() !== 'sqlite') {
+            Schema::table('accounting_journal_entries', function (Blueprint $table) {
+                $table->dropForeign('acct_je_xfer_fk');
+            });
+        }
 
         Schema::dropIfExists('accounting_transfers');
         Schema::dropIfExists('accounting_expense_category_mappings');

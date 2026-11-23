@@ -19,10 +19,6 @@ class AccountingBranchSetting extends Model
         'close_the_books',
         'closing_date',
         'enable_account_numbers',
-        'tax_payable_account_id',
-        'tax_receivable_account_id',
-        'sales_discount_account_id',
-        'purchase_discount_account_id',
     ];
 
     protected $casts = [

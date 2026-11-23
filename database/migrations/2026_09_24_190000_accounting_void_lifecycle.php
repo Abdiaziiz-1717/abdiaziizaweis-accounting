@@ -103,6 +103,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         Schema::table('accounting_transactions', function (Blueprint $table) {
             if (Schema::hasColumn('accounting_transactions', 'superseded_by_transaction_id')) {
                 $table->dropForeign('acct_tx_superseded_by_fk');
