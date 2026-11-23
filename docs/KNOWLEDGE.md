@@ -380,4 +380,96 @@ To post again into a formerly closed range, call `reopen-period` or PATCH `/sett
 
 ---
 
+## 20. Audit logging
+
+Host systems can attach their own audit trail without forking the package. All domain services call a single hook:
+
+`Abdiaziizaweis\Accounting\Contracts\AccountingAuditInterface::log($event, $entityType, $entityId, $context, $userId)`
+
+### Configuration
+
+`config/accounting.php`:
+
+```php
+'audit' => [
+    'driver' => \Abdiaziizaweis\Accounting\Audit\NullAccountingAudit::class,
+],
+```
+
+`AccountingServiceProvider` binds `AccountingAuditInterface` to `config('accounting.audit.driver')`.
+
+| Driver | Behavior |
+|--------|----------|
+| `NullAccountingAudit` | Default — no I/O; package works with zero audit setup. |
+| `SpatieAccountingAudit` | Uses Spatie `activity()` when the helper exists; otherwise no-op. |
+| Custom class | Any implementation of `AccountingAuditInterface` (see below). |
+
+### Built-in drivers
+
+**`NullAccountingAudit`** — empty `log()` method.
+
+**`SpatieAccountingAudit`** — writes an activity with:
+
+- log name / event = `$event`
+- properties = `$context` plus `entity_type`, `entity_id`
+- `causedBy` when `$userId` or authenticated user is known
+
+### Events emitted by the package
+
+| Event | Entity type | When | Typical context |
+|-------|-------------|------|-----------------|
+| `transaction.created` | `AccountingTransaction` | `recordTransaction()` creates a new row | `amount`, `journal_entry_id`, `status`, `type` |
+| `transaction.superseded` | `AccountingTransaction` | Economic edit voids prior tx and creates successor | above + `superseded_transaction_id` |
+| `transaction.voided` | `AccountingTransaction` | `voidTransaction()` | `amount`, `journal_entry_id`, `void_reason`, `status`, `type` |
+| `transaction.mapped` | `AccountingTransaction` | `mapWithAccounts()` | `amount`, `journal_entry_id`, `debit_account_id`, `credit_account_id`, … |
+| `transaction.unmapped` | `AccountingTransaction` | `unmap()` | `amount`, `journal_entry_id`, … |
+| `journal.created` | `AccountingJournalEntry` | `createFromMapping()` (includes manual entries and transfer JEs) | `journal_entry_id`, `amount`, `source` |
+| `journal.voided` | `AccountingJournalEntry` | `voidEntry()` | `journal_entry_id`, `void_reason`, `amount` |
+| `journal.replaced` | `AccountingJournalEntry` | `reverseOrReplace()` when a prior JE existed | `journal_entry_id`, `prior_journal_entry_id`, `amount` |
+| `transfer.created` | `AccountingTransfer` | `AccountingTransferService::create()` | `amount`, `from_account_id`, `to_account_id`, `journal_entry_id` |
+| `transfer.deleted` | `AccountingTransfer` | `AccountingTransferService::delete()` | same shape as create |
+
+On economic supersede you will see **`transaction.created`** and **`transaction.superseded`** on the new transaction, and **`transaction.voided`** on the superseded transaction. Remapping a transaction may also emit **`journal.voided`**, **`journal.created`**, and **`journal.replaced`**.
+
+### Custom host audit table
+
+```php
+// app/Accounting/CustomAuditLogger.php
+use Abdiaziizaweis\Accounting\Contracts\AccountingAuditInterface;
+use Illuminate\Support\Facades\DB;
+
+class CustomAuditLogger implements AccountingAuditInterface
+{
+    public function log(
+        string $event,
+        string $entityType,
+        int $entityId,
+        array $context = [],
+        ?int $userId = null,
+    ): void {
+        DB::table('main_audit_log')->insert([
+            'event' => $event,
+            'entity_type' => $entityType,
+            'entity_id' => $entityId,
+            'context' => json_encode($context),
+            'user_id' => $userId,
+            'created_at' => now(),
+        ]);
+    }
+}
+```
+
+Register in `AppServiceProvider::register()`:
+
+```php
+$this->app->bind(
+    \Abdiaziizaweis\Accounting\Contracts\AccountingAuditInterface::class,
+    \App\Accounting\CustomAuditLogger::class,
+);
+```
+
+Binding in the host overrides the config driver for that application.
+
+---
+
 *Package version context: Laravel 11, PHP 8.2+, void-based tx/JE lifecycle, reconcile feature removed in migration `2026_09_09_110000_drop_reconcile`.*

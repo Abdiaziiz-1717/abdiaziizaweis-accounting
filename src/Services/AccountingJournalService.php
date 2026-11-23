@@ -2,6 +2,7 @@
 
 namespace Abdiaziizaweis\Accounting\Services;
 
+use Abdiaziizaweis\Accounting\Contracts\AccountingAuditInterface;
 use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
 
 use Abdiaziizaweis\Accounting\Enums\AccountingJournalEntryStatus;
@@ -103,7 +104,21 @@ class AccountingJournalService
                 ]);
             }
 
-            return $entry->load('lines');
+            $entry = $entry->load('lines');
+
+            app(AccountingAuditInterface::class)->log(
+                'journal.created',
+                'AccountingJournalEntry',
+                (int) $entry->id,
+                [
+                    'journal_entry_id' => (int) $entry->id,
+                    'amount' => (float) $entry->amount,
+                    'source' => $source,
+                ],
+                Auth::id() ? (int) Auth::id() : null,
+            );
+
+            return $entry;
         });
     }
 
@@ -124,14 +139,30 @@ class AccountingJournalService
                 return $entry;
             }
 
+            $voidReason = $reason ?: 'Voided';
+
             $entry->forceFill([
                 'status' => AccountingJournalEntryStatus::Voided,
                 'voided_at' => now(),
                 'voided_by_user_id' => $userId ?? Auth::id(),
-                'void_reason' => $reason ?: 'Voided',
+                'void_reason' => $voidReason,
             ])->save();
 
-            return $entry->fresh(['lines']);
+            $entry = $entry->fresh(['lines']);
+
+            app(AccountingAuditInterface::class)->log(
+                'journal.voided',
+                'AccountingJournalEntry',
+                (int) $entry->id,
+                [
+                    'journal_entry_id' => (int) $entry->id,
+                    'void_reason' => $voidReason,
+                    'amount' => (float) $entry->amount,
+                ],
+                ($userId ?? Auth::id()) ? (int) ($userId ?? Auth::id()) : null,
+            );
+
+            return $entry;
         });
     }
 
@@ -197,6 +228,18 @@ class AccountingJournalService
                 AccountingTransfer::withoutGlobalScopes()
                     ->where('journal_entry_id', $existing->id)
                     ->update(['journal_entry_id' => $replacement->id]);
+
+                app(AccountingAuditInterface::class)->log(
+                    'journal.replaced',
+                    'AccountingJournalEntry',
+                    (int) $replacement->id,
+                    [
+                        'journal_entry_id' => (int) $replacement->id,
+                        'prior_journal_entry_id' => (int) $existing->id,
+                        'amount' => (float) $replacement->amount,
+                    ],
+                    Auth::id() ? (int) Auth::id() : null,
+                );
             }
 
             return $replacement;

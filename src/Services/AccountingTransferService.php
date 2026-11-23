@@ -2,10 +2,12 @@
 
 namespace Abdiaziizaweis\Accounting\Services;
 
+use Abdiaziizaweis\Accounting\Contracts\AccountingAuditInterface;
 use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
 
 use Abdiaziizaweis\Accounting\Enums\AccountingJournalSource;
 use Abdiaziizaweis\Accounting\Models\AccountingTransfer;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -83,17 +85,48 @@ class AccountingTransferService
 
             $transfer->update(['journal_entry_id' => $entry->id]);
 
-            return $transfer->fresh(['fromAccount', 'toAccount', 'journalEntry.lines']);
+            $transfer = $transfer->fresh(['fromAccount', 'toAccount', 'journalEntry.lines']);
+
+            app(AccountingAuditInterface::class)->log(
+                'transfer.created',
+                'AccountingTransfer',
+                (int) $transfer->id,
+                [
+                    'amount' => (float) $transfer->amount,
+                    'from_account_id' => (int) $transfer->from_account_id,
+                    'to_account_id' => (int) $transfer->to_account_id,
+                    'journal_entry_id' => $transfer->journal_entry_id ? (int) $transfer->journal_entry_id : null,
+                ],
+                Auth::id() ? (int) Auth::id() : null,
+            );
+
+            return $transfer;
         });
     }
 
     public function delete(AccountingTransfer $transfer): void
     {
         DB::transaction(function () use ($transfer) {
+            $auditContext = [
+                'amount' => (float) $transfer->amount,
+                'from_account_id' => (int) $transfer->from_account_id,
+                'to_account_id' => (int) $transfer->to_account_id,
+                'journal_entry_id' => $transfer->journal_entry_id ? (int) $transfer->journal_entry_id : null,
+            ];
+            $transferId = (int) $transfer->id;
+
             if ($transfer->journal_entry_id && $transfer->journalEntry) {
                 $this->journals->deleteEntryIfNotReconciled($transfer->journalEntry);
             }
             $transfer->delete();
+
+            app(AccountingAuditInterface::class)->log(
+                'transfer.deleted',
+                'AccountingTransfer',
+                $transferId,
+                $auditContext,
+                Auth::id() ? (int) Auth::id() : null,
+            );
         });
     }
 }

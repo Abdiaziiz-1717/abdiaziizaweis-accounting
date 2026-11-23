@@ -35,6 +35,14 @@ return [
         'guard' => DefaultAccountingAuth::class,
     ],
 
+    'audit' => [
+        'driver' => \Abdiaziizaweis\Accounting\Audit\NullAccountingAudit::class,
+        // Options:
+        // NullAccountingAudit::class — no audit logging (default)
+        // SpatieAccountingAudit::class — log via Spatie activitylog
+        // Or provide your own class implementing AccountingAuditInterface
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Host model class map (MAAMUUS-style defaults)

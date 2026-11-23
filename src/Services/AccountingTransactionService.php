@@ -2,6 +2,7 @@
 
 namespace Abdiaziizaweis\Accounting\Services;
 
+use Abdiaziizaweis\Accounting\Contracts\AccountingAuditInterface;
 use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
 
 use Abdiaziizaweis\Accounting\Enums\AccountingJournalEntryStatus;
@@ -111,7 +112,13 @@ class AccountingTransactionService
                         $this->tryAutoMap($tx, $attributes);
                     }
 
-                    return $tx->fresh(['journalEntry.lines']);
+                    $tx = $tx->fresh(['journalEntry.lines']);
+                    $this->auditTransaction('transaction.created', $tx);
+                    $this->auditTransaction('transaction.superseded', $tx, [
+                        'superseded_transaction_id' => (int) $existing->id,
+                    ]);
+
+                    return $tx;
                 }
 
                 // Non-economic: description / reference / owner only.
@@ -138,7 +145,10 @@ class AccountingTransactionService
                 $this->tryAutoMap($tx, $attributes);
             }
 
-            return $tx->fresh(['journalEntry.lines']);
+            $tx = $tx->fresh(['journalEntry.lines']);
+            $this->auditTransaction('transaction.created', $tx);
+
+            return $tx;
         });
     }
 
@@ -185,7 +195,12 @@ class AccountingTransactionService
                 'superseded_by_transaction_id' => $supersededBy?->id ?? $tx->superseded_by_transaction_id,
             ])->save();
 
-            return $tx->fresh(['journalEntry.lines']);
+            $tx = $tx->fresh(['journalEntry.lines']);
+            $this->auditTransaction('transaction.voided', $tx, [
+                'void_reason' => $reason ?: 'Voided',
+            ]);
+
+            return $tx;
         });
     }
 
@@ -297,7 +312,10 @@ class AccountingTransactionService
             $tx->journal_entry_id = null;
             $tx->save();
 
-            return $tx->fresh();
+            $tx = $tx->fresh();
+            $this->auditTransaction('transaction.unmapped', $tx);
+
+            return $tx;
         });
     }
 
@@ -346,7 +364,13 @@ class AccountingTransactionService
             $tx->status = AccountingTransactionStatus::Mapped;
             $tx->save();
 
-            return $tx->fresh(['journalEntry.lines']);
+            $tx = $tx->fresh(['journalEntry.lines']);
+            $this->auditTransaction('transaction.mapped', $tx, [
+                'debit_account_id' => $debitAccountId,
+                'credit_account_id' => $creditAccountId,
+            ]);
+
+            return $tx;
         });
     }
 
@@ -472,5 +496,24 @@ class AccountingTransactionService
         ];
 
         return $map[$type] ?? null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $extra
+     */
+    protected function auditTransaction(string $event, AccountingTransaction $tx, array $extra = []): void
+    {
+        app(AccountingAuditInterface::class)->log(
+            $event,
+            'AccountingTransaction',
+            (int) $tx->id,
+            array_merge([
+                'amount' => (float) $tx->amount,
+                'journal_entry_id' => $tx->journal_entry_id ? (int) $tx->journal_entry_id : null,
+                'status' => (string) $tx->status->value,
+                'type' => $tx->type,
+            ], $extra),
+            Auth::id() ? (int) Auth::id() : null,
+        );
     }
 }

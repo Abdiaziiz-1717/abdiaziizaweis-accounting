@@ -13,4 +13,8 @@ return [
     'auth' => [
         'guard' => \Abdiaziizaweis\Accounting\Auth\DefaultAccountingAuth::class,
     ],
+
+    'audit' => [
+        'driver' => \Abdiaziizaweis\Accounting\Audit\NullAccountingAudit::class,
+    ],
 ];

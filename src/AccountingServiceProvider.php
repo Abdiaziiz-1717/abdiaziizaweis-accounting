@@ -11,6 +11,8 @@ use Abdiaziizaweis\Accounting\Context\MultiBranchContextResolver;
 use Abdiaziizaweis\Accounting\Context\MultiTenantContextResolver;
 use Abdiaziizaweis\Accounting\Context\MultiTenantMultiBranchContextResolver;
 use Abdiaziizaweis\Accounting\Context\SingleTenantContextResolver;
+use Abdiaziizaweis\Accounting\Audit\NullAccountingAudit;
+use Abdiaziizaweis\Accounting\Contracts\AccountingAuditInterface;
 use Abdiaziizaweis\Accounting\Contracts\AccountingAuthInterface;
 use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
 use Abdiaziizaweis\Accounting\Http\Middleware\AccountingPermissionMiddleware;
@@ -57,6 +59,11 @@ class AccountingServiceProvider extends ServiceProvider
         $this->app->bind(
             AccountingAuthInterface::class,
             (string) config('accounting.auth.guard', DefaultAccountingAuth::class)
+        );
+
+        $this->app->bind(
+            AccountingAuditInterface::class,
+            (string) config('accounting.audit.driver', NullAccountingAudit::class)
         );
 
         $this->app->singleton(AccountingDocumentBridge::class);

@@ -60,6 +60,7 @@ Host apps need `users`, and—depending on tenancy—`organizations`, `branches`
 5. **Reports** — Trial balance, P&amp;L, balance sheet, cash flow, account statement, journal activity by month.
 6. **HTTP API** — Prefixed by `config('accounting.route_prefix')` (default `api/v1/accounting`).
 7. **Period controls** — Close books through `closing_date`; posting, voiding, journals, and transfers are blocked for dates on or before the close (see `AccountingPeriodGuard`).
+8. **Pluggable audit logging** — Implement `AccountingAuditInterface` (or use `NullAccountingAudit` / `SpatieAccountingAudit`) so host apps can record audit events for transactions, journals, and transfers.
 
 ---
 
@@ -313,6 +314,7 @@ HTTP equivalent: **POST** `{prefix}/bootstrap` with optional `force=1` (permissi
 | `features.tax_splitting` | `true` | Bootstrap wires tax accounts into branch settings when CoA seeds |
 | `features.discount_splitting` | `true` | Bootstrap wires discount accounts into branch settings |
 | `auth.guard` | `DefaultAccountingAuth::class` | `AccountingAuthInterface` implementation |
+| `audit.driver` | `NullAccountingAudit::class` | `AccountingAuditInterface` implementation (`SpatieAccountingAudit` or a custom class) |
 | `models.user` | `App\Models\User` | User model FQCN |
 | `models.organization` | `App\Models\Organization` | Organization model |
 | `models.branch` | `App\Models\Branch` | Branch model |
