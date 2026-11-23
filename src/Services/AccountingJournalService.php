@@ -10,6 +10,7 @@ use Abdiaziizaweis\Accounting\Models\AccountingJournalEntry;
 use Abdiaziizaweis\Accounting\Models\AccountingJournalEntryLine;
 use Abdiaziizaweis\Accounting\Models\AccountingTransaction;
 use Abdiaziizaweis\Accounting\Models\AccountingTransfer;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -17,6 +18,10 @@ use RuntimeException;
 
 class AccountingJournalService
 {
+    public function __construct(
+        protected AccountingPeriodGuard $periodGuard,
+    ) {}
+
     /**
      * @param  array{
      *     journal_date: string|\DateTimeInterface,
@@ -33,6 +38,7 @@ class AccountingJournalService
      */
     public function createManualEntry(array $header, array $lines): AccountingJournalEntry
     {
+        $this->periodGuard->assertOpen($header['journal_date'] ?? now());
         $header['source'] = $header['source'] ?? AccountingJournalSource::Manual;
 
         return $this->createFromMapping($header, $lines);
@@ -56,6 +62,7 @@ class AccountingJournalService
      */
     public function createFromMapping(array $header, array $lines): AccountingJournalEntry
     {
+        $this->periodGuard->assertOpen($header['journal_date'] ?? now());
         $this->assertBalanced($lines);
 
         return DB::transaction(function () use ($header, $lines) {
@@ -108,6 +115,8 @@ class AccountingJournalService
         ?string $reason = null,
         ?int $userId = null
     ): AccountingJournalEntry {
+        $this->periodGuard->assertOpen(now());
+
         return DB::transaction(function () use ($entry, $reason, $userId) {
             $entry = AccountingJournalEntry::withoutGlobalScopes()->findOrFail($entry->id);
 

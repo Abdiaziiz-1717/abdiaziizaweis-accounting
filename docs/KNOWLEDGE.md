@@ -348,4 +348,36 @@ All GET under `/reports/...` with `view accounting reports`.
 
 ---
 
+## 19. Accounting period controls
+
+Branch settings (`accounting_branch_settings`) include:
+
+| Column | Purpose |
+|--------|---------|
+| `close_the_books` | When `true`, period guard is active for the branch. |
+| `closing_date` | Last calendar day of the closed period. Dates **on or before** this day cannot be posted while closed. |
+
+`Abdiaziizaweis\Accounting\Services\AccountingPeriodGuard` loads settings for the current `AccountingContextInterface` branch (or organization when no branch). If no settings row exists, books are treated as **open**.
+
+**Blocked when closed** (`assertOpen` throws `AccountingPeriodClosedException`):
+
+- `AccountingTransactionService::recordTransaction()` — document `transaction_date`
+- `AccountingTransactionService::voidTransaction()` — **today** (void is a current-period action)
+- `AccountingJournalService::createFromMapping()` / `createManualEntry()` — `journal_date`
+- `AccountingJournalService::voidEntry()` — **today**
+- `AccountingTransferService::create()` — `transfer_date`
+
+**API**
+
+| Method | Path | Body | Permission |
+|--------|------|------|------------|
+| PATCH | `{prefix}/settings/close-period` | `{ "closing_date": "YYYY-MM-DD" }` | `manage accounting settings` |
+| PATCH | `{prefix}/settings/reopen-period` | (none) | `manage accounting settings` |
+
+`close-period` sets `close_the_books = true` and `closing_date`. `reopen-period` sets `close_the_books = false` (keeps `closing_date` for audit).
+
+To post again into a formerly closed range, call `reopen-period` or PATCH `/settings` with `close_the_books: false`.
+
+---
+
 *Package version context: Laravel 11, PHP 8.2+, void-based tx/JE lifecycle, reconcile feature removed in migration `2026_09_09_110000_drop_reconcile`.*

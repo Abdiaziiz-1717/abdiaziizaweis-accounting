@@ -21,6 +21,10 @@ Route::get('/settings', [AccountingSettingsController::class, 'show'])
     ->middleware('permission:manage accounting settings');
 Route::patch('/settings', [AccountingSettingsController::class, 'update'])
     ->middleware('permission:manage accounting settings');
+Route::patch('/settings/close-period', [AccountingSettingsController::class, 'closePeriod'])
+    ->middleware('permission:manage accounting settings');
+Route::patch('/settings/reopen-period', [AccountingSettingsController::class, 'reopenPeriod'])
+    ->middleware('permission:manage accounting settings');
 
 Route::get('/accounts', [AccountingAccountController::class, 'index'])
     ->middleware('permission:view accounting accounts');

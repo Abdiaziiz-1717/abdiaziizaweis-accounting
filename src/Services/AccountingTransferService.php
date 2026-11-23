@@ -13,6 +13,7 @@ class AccountingTransferService
 {
     public function __construct(
         protected AccountingJournalService $journals,
+        protected AccountingPeriodGuard $periodGuard,
     ) {}
 
     /**
@@ -44,6 +45,8 @@ class AccountingTransferService
                 'amount' => ['Transfer amount must be greater than zero.'],
             ]);
         }
+
+        $this->periodGuard->assertOpen($data['transfer_date'] ?? now());
 
         return DB::transaction(function () use ($data, $amount) {
             $orgId = (int) ($data['organization_id'] ?? app(AccountingContextInterface::class)->getOrganizationId());

@@ -69,4 +69,47 @@ class AccountingSettingsController extends BaseController
 
         return $this->successResponse($settings->fresh(), 'Accounting settings updated');
     }
+
+    public function closePeriod(Request $request)
+    {
+        $validated = $request->validate([
+            'closing_date' => 'required|date',
+        ]);
+
+        $branchId = app(AccountingContextInterface::class)->getBranchId();
+        $orgId = app(AccountingContextInterface::class)->getOrganizationId();
+
+        $settings = AccountingBranchSetting::query()->firstOrCreate(
+            ['branch_id' => $branchId],
+            [
+                'organization_id' => $orgId,
+                'first_month_financial_year' => 1,
+                'accounting_method' => 'accrual',
+            ]
+        );
+
+        $settings->update([
+            'close_the_books' => true,
+            'closing_date' => $validated['closing_date'],
+        ]);
+
+        return $this->successResponse($settings->fresh(), 'Accounting period closed');
+    }
+
+    public function reopenPeriod()
+    {
+        $branchId = app(AccountingContextInterface::class)->getBranchId();
+        $orgId = app(AccountingContextInterface::class)->getOrganizationId();
+
+        $settings = AccountingBranchSetting::query()->firstOrCreate(
+            ['branch_id' => $branchId],
+            ['organization_id' => $orgId]
+        );
+
+        $settings->update([
+            'close_the_books' => false,
+        ]);
+
+        return $this->successResponse($settings->fresh(), 'Accounting period reopened');
+    }
 }

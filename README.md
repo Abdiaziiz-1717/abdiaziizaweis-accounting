@@ -59,6 +59,7 @@ Host apps need `users`, and—depending on tenancy—`organizations`, `branches`
 4. **Journal entries** — Balanced headers + lines; created from mapping, manual API, or transfers. **Void-based** lifecycle (no hard-delete of posted history).
 5. **Reports** — Trial balance, P&amp;L, balance sheet, cash flow, account statement, journal activity by month.
 6. **HTTP API** — Prefixed by `config('accounting.route_prefix')` (default `api/v1/accounting`).
+7. **Period controls** — Close books through `closing_date`; posting, voiding, journals, and transfers are blocked for dates on or before the close (see `AccountingPeriodGuard`).
 
 ---
 

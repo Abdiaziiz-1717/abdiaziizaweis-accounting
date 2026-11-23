@@ -11,6 +11,7 @@ use Abdiaziizaweis\Accounting\Enums\AccountingTransactionStatus;
 use Abdiaziizaweis\Accounting\Contracts\AccountingDocumentInterface;
 use Abdiaziizaweis\Accounting\Models\AccountingJournalEntry;
 use Abdiaziizaweis\Accounting\Models\AccountingTransaction;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -20,6 +21,7 @@ class AccountingTransactionService
     public function __construct(
         protected AccountingJournalService $journals,
         protected AccountingMappingResolver $resolver,
+        protected AccountingPeriodGuard $periodGuard,
     ) {}
 
     /**
@@ -52,6 +54,8 @@ class AccountingTransactionService
      */
     public function recordTransaction(?AccountingDocumentInterface $transactionable, array $attributes): AccountingTransaction
     {
+        $this->periodGuard->assertOpen($attributes['transaction_date'] ?? now());
+
         return DB::transaction(function () use ($transactionable, $attributes) {
             $orgId = (int) ($attributes['organization_id'] ?? app(AccountingContextInterface::class)->getOrganizationId());
             $branchId = (int) ($attributes['branch_id'] ?? app(AccountingContextInterface::class)->getBranchId() ?? 0);
@@ -147,6 +151,8 @@ class AccountingTransactionService
         ?int $userId = null,
         ?AccountingTransaction $supersededBy = null
     ): AccountingTransaction {
+        $this->periodGuard->assertOpen(now());
+
         return DB::transaction(function () use ($tx, $reason, $userId, $supersededBy) {
             $tx = AccountingTransaction::withoutGlobalScopes()->findOrFail($tx->id);
 
