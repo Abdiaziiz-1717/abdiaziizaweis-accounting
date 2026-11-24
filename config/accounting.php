@@ -59,15 +59,11 @@ return [
         'user' => \App\Models\User::class,
         'organization' => \App\Models\Organization::class,
         'branch' => \App\Models\Branch::class,
-        'payment_method' => \App\Models\PaymentMethod::class,
-        'expense_category' => \App\Models\ExpenseCategory::class,
     ],
 
     'tables' => [
         'organizations' => 'organizations',
         'branches' => 'branches',
         'users' => 'users',
-        'payment_methods' => 'payment_methods',
-        'expense_categories' => 'expense_categories',
     ],
 ];

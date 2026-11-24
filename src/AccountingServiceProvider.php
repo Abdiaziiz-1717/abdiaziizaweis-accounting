@@ -20,10 +20,8 @@ use Abdiaziizaweis\Accounting\Http\Middleware\AccountingPermissionMiddleware;
 use Abdiaziizaweis\Accounting\Http\Middleware\ResolveAccountingContext;
 use Abdiaziizaweis\Accounting\Services\AccountingDocumentBridge;
 use Abdiaziizaweis\Accounting\Services\AccountingJournalService;
-use Abdiaziizaweis\Accounting\Services\JournalLineResolver;
 use Abdiaziizaweis\Accounting\Services\OperationMappingCompiler;
 use Abdiaziizaweis\Accounting\Services\OperationMappingService;
-use Abdiaziizaweis\Accounting\Services\AccountingMappingResolver;
 use Abdiaziizaweis\Accounting\Services\AccountingPeriodGuard;
 use Abdiaziizaweis\Accounting\Services\AccountingReportService;
 use Abdiaziizaweis\Accounting\Services\AccountingTransactionService;
@@ -78,11 +76,9 @@ class AccountingServiceProvider extends ServiceProvider
         $this->app->singleton(AccountingDocumentBridge::class);
         $this->app->singleton(AccountingTransactionService::class);
         $this->app->singleton(AccountingJournalService::class);
-        $this->app->singleton(AccountingMappingResolver::class);
         $this->app->singleton(AccountingTransferService::class);
         $this->app->singleton(AccountingReportService::class);
         $this->app->singleton(AccountingPeriodGuard::class);
-        $this->app->singleton(JournalLineResolver::class);
         $this->app->singleton(OperationMappingCompiler::class);
         $this->app->singleton(OperationMappingService::class);
     }

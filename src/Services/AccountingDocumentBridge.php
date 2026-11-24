@@ -10,15 +10,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Host document → accounting transaction. Posts only when the host saved
- * a balanced operation mapping, or returned explicit getJournalLines().
+ * Host document → accounting transaction.
+ * Posts only when the host saved a balanced operation mapping.
  */
 class AccountingDocumentBridge
 {
     public function __construct(
         protected AccountingTransactionService $transactions,
-        protected JournalLineResolver $journalLineResolver,
-        protected OperationMappingCompiler $compiler,
     ) {}
 
     public function record(AccountingDocumentInterface $document): void
@@ -40,9 +38,7 @@ class AccountingDocumentBridge
                 return;
             }
 
-            $customLines = $document->getJournalLines();
-
-            $tx = $this->transactions->recordTransaction($document, TenancySchemaHelper::filterTenantAttributes([
+            $this->transactions->recordTransaction($document, TenancySchemaHelper::filterTenantAttributes([
                 'organization_id' => $context->getOrganizationId(),
                 'branch_id' => $branchId,
                 'owner_user_id' => $this->ownerUserId($document, $context),
@@ -54,13 +50,8 @@ class AccountingDocumentBridge
                 'transaction_date' => $document->getDate()->toDateString(),
                 'description' => $document->getDescription(),
                 'reference' => $document->getReference(),
-                'auto_map' => $customLines === null,
+                'auto_map' => true,
             ]));
-
-            if ($customLines !== null) {
-                $resolved = $this->journalLineResolver->resolve($customLines, $operationKey);
-                $this->transactions->mapWithLines($tx, $resolved);
-            }
         }, 'record:'.$document->getOperationKey(), $document);
     }
 

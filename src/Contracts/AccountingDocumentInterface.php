@@ -2,7 +2,6 @@
 
 namespace Abdiaziizaweis\Accounting\Contracts;
 
-use Abdiaziizaweis\Accounting\ValueObjects\JournalLine;
 use Illuminate\Support\Carbon;
 
 /**
@@ -37,12 +36,4 @@ interface AccountingDocumentInterface
     public function getDescription(): ?string;
 
     public function getOwnerUserId(): ?int;
-
-    /**
-     * Escape hatch. When non-null, these lines are posted instead of stored mapping lines.
-     * Hosts should prefer mapping lines for tax, discount, and COGS.
-     *
-     * @return list<JournalLine>|null
-     */
-    public function getJournalLines(): ?array;
 }

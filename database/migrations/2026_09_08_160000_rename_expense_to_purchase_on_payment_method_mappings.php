@@ -15,6 +15,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (! Schema::hasTable('accounting_payment_method_mappings')) {
+            return;
+        }
+
         if (Schema::getConnection()->getDriverName() !== 'sqlite') {
             Schema::table('accounting_payment_method_mappings', function (Blueprint $table) {
                 $table->dropForeign('acct_pm_exp_debit_fk');
@@ -40,6 +44,10 @@ return new class extends Migration
     public function down(): void
     {
         if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
+        if (! Schema::hasTable('accounting_payment_method_mappings')) {
             return;
         }
 

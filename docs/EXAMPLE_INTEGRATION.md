@@ -1,19 +1,8 @@
-# Example integration (v2)
+# Example
 
-The package does not know sales, hotels, or purchases. After `accounting:bootstrap` the chart of accounts exists and **every operation mapping is empty**. Documents stay `not_mapped` until your UI saves lines.
+After bootstrap, mappings are empty. Create the operation in your UI (or with HTTP), then save documents.
 
-## 1. Register a catalog (optional, no database writes)
-
-```php
-use Abdiaziizaweis\Accounting\Registry\DocumentRegistry;
-
-DocumentRegistry::register('sale.recorded', 'Sale recorded', ['amount', 'cost', 'tax_amount']);
-DocumentRegistry::register('sale.payment', 'Sale payment', ['amount']);
-```
-
-`GET /registry/documents` returns that list so the mapping screen can show dropdowns. It does not insert mapping rows.
-
-## 2. Host saves lines (your UI)
+## Save the mapping
 
 `PUT /api/v1/accounting/operations/sale.recorded`
 
@@ -30,13 +19,16 @@ DocumentRegistry::register('sale.payment', 'Sale payment', ['amount']);
 }
 ```
 
-Tax is the same mechanism, not a package splitter. Add lines whose `amount_source` is `tax_amount` or `discount_amount` and send those keys on the payload.
+`GET /operations` then shows the label and amount sources. You do not register this in PHP.
 
-## 3. Document adapter
+Tax is the same idea: add lines whose `amount_source` is `tax_amount` and send `tax_amount` on the payload.
+
+## Model
 
 ```php
 use Abdiaziizaweis\Accounting\Concerns\HasAccountingDocument;
 use Abdiaziizaweis\Accounting\Contracts\AccountingDocumentInterface;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 class Sale extends Model implements AccountingDocumentInterface
@@ -74,6 +66,4 @@ class Sale extends Model implements AccountingDocumentInterface
 }
 ```
 
-`HasAccountingDocument` calls the bridge on save. The bridge looks up `sale.recorded`. No mapping → transaction `not_mapped`, no journal. Balanced lines → journal from those lines only.
-
-You do not need `getJournalLines()` for tax, discount, or COGS. Implement it only when a document must hard-code lines in PHP.
+`HasAccountingDocument` posts on save and voids on delete. See BLADE_INTEGRATION.md if you need to call `record()` yourself.

@@ -34,12 +34,4 @@ trait HasDefaultDocumentMethods
     {
         return ['amount' => 0];
     }
-
-    /**
-     * @return list<\Abdiaziizaweis\Accounting\ValueObjects\JournalLine>|null
-     */
-    public function getJournalLines(): ?array
-    {
-        return null;
-    }
 }

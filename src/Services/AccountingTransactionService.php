@@ -8,7 +8,6 @@ use Abdiaziizaweis\Accounting\Database\Migration\TenancySchemaHelper;
 
 use Abdiaziizaweis\Accounting\Enums\AccountingJournalEntryStatus;
 use Abdiaziizaweis\Accounting\Enums\AccountingJournalSource;
-use Abdiaziizaweis\Accounting\Enums\AccountingModule;
 use Abdiaziizaweis\Accounting\Enums\AccountingTransactionStatus;
 use Abdiaziizaweis\Accounting\Contracts\AccountingDocumentInterface;
 use Abdiaziizaweis\Accounting\Models\AccountingJournalEntry;
@@ -22,7 +21,6 @@ class AccountingTransactionService
 {
     public function __construct(
         protected AccountingJournalService $journals,
-        protected AccountingMappingResolver $resolver,
         protected AccountingPeriodGuard $periodGuard,
         protected OperationMappingCompiler $operationMappings,
     ) {}
@@ -49,10 +47,7 @@ class AccountingTransactionService
      *     organization_id?: ?int,
      *     branch_id?: ?int,
      *     auto_map?: bool,
-     *     module?: AccountingModule|string|null,
      *     document_type?: ?string,
-     *     payment_method_id?: ?int,
-     *     expense_category_id?: ?int,
      * }  $attributes
      */
     public function recordTransaction(?AccountingDocumentInterface $transactionable, array $attributes): AccountingTransaction
@@ -212,10 +207,7 @@ class AccountingTransactionService
      * Attempt to auto-map a transaction using document / payment / expense mappings.
      *
      * @param  array{
-     *     module?: AccountingModule|string|null,
      *     document_type?: ?string,
-     *     payment_method_id?: ?int,
-     *     expense_category_id?: ?int,
      *     debit_account_id?: ?int,
      *     credit_account_id?: ?int,
      * }  $hints
@@ -448,43 +440,6 @@ class AccountingTransactionService
             'description' => $attributes['description'] ?? null,
             'reference' => $attributes['reference'] ?? null,
         ]);
-    }
-
-    /**
-     * @return array{module: string, document_type: string}|null
-     */
-    public function inferModuleAndDocumentType(string $type): ?array
-    {
-        $map = [
-            'hotel_invoice' => ['module' => AccountingModule::Hotel->value, 'document_type' => 'invoice'],
-            'hotel_payment' => ['module' => AccountingModule::Hotel->value, 'document_type' => 'payment'],
-            'restaurant_invoice' => ['module' => AccountingModule::Restaurant->value, 'document_type' => 'invoice'],
-            'restaurant_payment' => ['module' => AccountingModule::Restaurant->value, 'document_type' => 'payment'],
-            'event_invoice' => ['module' => AccountingModule::Events->value, 'document_type' => 'invoice'],
-            'event_payment' => ['module' => AccountingModule::Events->value, 'document_type' => 'payment'],
-            'purchase_invoice' => ['module' => AccountingModule::Purchase->value, 'document_type' => 'invoice'],
-            'purchase_payment' => ['module' => AccountingModule::Purchase->value, 'document_type' => 'payment'],
-            'expense' => ['module' => AccountingModule::Expenses->value, 'document_type' => 'expense'],
-            'customer_deposit' => ['module' => AccountingModule::Crm->value, 'document_type' => 'deposit'],
-            'customer_deposit_refund' => ['module' => AccountingModule::Crm->value, 'document_type' => 'deposit_refund'],
-            'payroll' => ['module' => AccountingModule::Payroll->value, 'document_type' => 'payroll'],
-            'inventory_transfer_out' => ['module' => AccountingModule::Inventory->value, 'document_type' => 'transfer_out'],
-            'inventory_transfer_in' => ['module' => AccountingModule::Inventory->value, 'document_type' => 'transfer_in'],
-            'inventory_purchase_return' => ['module' => AccountingModule::Inventory->value, 'document_type' => 'purchase_return'],
-            'inventory_purchase_return_void' => ['module' => AccountingModule::Inventory->value, 'document_type' => 'purchase_return_void'],
-            'saas_invoice' => ['module' => AccountingModule::Saas->value, 'document_type' => 'invoice'],
-            'saas_payment' => ['module' => AccountingModule::Saas->value, 'document_type' => 'payment'],
-            'sales_invoice' => ['module' => AccountingModule::Sales->value, 'document_type' => 'invoice'],
-            'sales_payment' => ['module' => AccountingModule::Sales->value, 'document_type' => 'payment'],
-            'sale_invoice' => ['module' => AccountingModule::Sales->value, 'document_type' => 'invoice'],
-            'sale_payment' => ['module' => AccountingModule::Sales->value, 'document_type' => 'payment'],
-            'service_invoice' => ['module' => AccountingModule::Service->value, 'document_type' => 'invoice'],
-            'service_payment' => ['module' => AccountingModule::Service->value, 'document_type' => 'payment'],
-            'parts_invoice' => ['module' => AccountingModule::Parts->value, 'document_type' => 'invoice'],
-            'parts_payment' => ['module' => AccountingModule::Parts->value, 'document_type' => 'payment'],
-        ];
-
-        return $map[$type] ?? null;
     }
 
     /**

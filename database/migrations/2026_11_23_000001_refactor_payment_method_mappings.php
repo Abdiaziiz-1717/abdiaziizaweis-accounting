@@ -10,6 +10,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (! Schema::hasTable('accounting_payment_method_mappings')) {
+            return;
+        }
+
         Schema::table('accounting_payment_method_mappings', function (Blueprint $table) {
             $table->unsignedBigInteger('sales_debit_account_id')->nullable()->change();
             $table->unsignedBigInteger('sales_credit_account_id')->nullable()->change();
@@ -90,6 +94,10 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('accounting_payment_method_mapping_sides');
+
+        if (! Schema::hasTable('accounting_payment_method_mappings')) {
+            return;
+        }
 
         Schema::table('accounting_payment_method_mappings', function (Blueprint $table) {
             $table->unsignedBigInteger('sales_debit_account_id')->nullable(false)->change();

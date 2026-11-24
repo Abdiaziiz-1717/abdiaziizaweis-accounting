@@ -33,18 +33,6 @@ abstract class TestCase extends Orchestra
             $table->timestamps();
         });
 
-        Schema::create('payment_methods', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->nullable();
-            $table->timestamps();
-        });
-
-        Schema::create('expense_categories', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->nullable();
-            $table->timestamps();
-        });
-
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
     }
 }

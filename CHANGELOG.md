@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.1.0] - 2026-11-24
+
+Stays on 2.x because `1.0.0`–`1.0.3` are already published with the old design. Packagist will not treat this cleanup as `1.0.0` again.
+
+- Docs rewritten for the current product only.
+- API routes no longer require permission Gates. Login middleware only. Hosts can add permissions later.
+- Removed PHP journal lines (`getJournalLines`), the document registry, industry module enum, and payment-method / expense-category mapping APIs.
+- Fresh installs do not create those old mapping tables. Upgrades drop them if they exist.
+- Posting is operation mapping lines plus the document payload only.
+
 ## [2.0.0] - 2026-11-23
 
 Breaking:

@@ -6,11 +6,8 @@ use Abdiaziizaweis\Accounting\Database\Migration\TenancySchemaHelper;
 use Abdiaziizaweis\Accounting\Enums\AccountingTransactionStatus;
 use Abdiaziizaweis\Accounting\Models\AccountingAccount;
 use Abdiaziizaweis\Accounting\Models\AccountingBranchSetting;
-use Abdiaziizaweis\Accounting\Models\AccountingDocumentMapping;
-use Abdiaziizaweis\Accounting\Models\AccountingOperationMapping;
-use Abdiaziizaweis\Accounting\Models\AccountingExpenseCategoryMapping;
 use Abdiaziizaweis\Accounting\Models\AccountingJournalEntry;
-use Abdiaziizaweis\Accounting\Models\AccountingPaymentMethodMapping;
+use Abdiaziizaweis\Accounting\Models\AccountingOperationMapping;
 use Abdiaziizaweis\Accounting\Models\AccountingTransaction;
 use Abdiaziizaweis\Accounting\Http\Traits\ApiResponseTrait;
 use Illuminate\Routing\Controller;
@@ -55,15 +52,6 @@ class AccountingHealthController extends Controller
             ->count();
 
         $disabledMappings = (int) AccountingOperationMapping::withoutGlobalScopes()
-            ->where('is_enabled', false)
-            ->count();
-        $disabledMappings += (int) AccountingDocumentMapping::withoutGlobalScopes()
-            ->where('is_enabled', false)
-            ->count();
-        $disabledMappings += (int) AccountingPaymentMethodMapping::withoutGlobalScopes()
-            ->where('is_enabled', false)
-            ->count();
-        $disabledMappings += (int) AccountingExpenseCategoryMapping::withoutGlobalScopes()
             ->where('is_enabled', false)
             ->count();
 

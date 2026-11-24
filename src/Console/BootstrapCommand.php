@@ -7,24 +7,19 @@ use Abdiaziizaweis\Accounting\Contracts\AccountingAuthInterface;
 use Abdiaziizaweis\Accounting\Contracts\AccountingContextInterface;
 use Abdiaziizaweis\Accounting\Database\Migration\TenancySchemaHelper;
 use Abdiaziizaweis\Accounting\Models\AccountingAccount;
-use Abdiaziizaweis\Accounting\Models\AccountingDocumentMapping;
-use Abdiaziizaweis\Accounting\Services\AccountingMappingResolver;
 use Abdiaziizaweis\Accounting\Services\AccountingMappingSeeder;
 
 class BootstrapCommand extends Command
 {
     protected $signature = 'accounting:bootstrap
-                            {--force : Re-apply default document mappings when they already exist}
+                            {--force : Kept for compatibility; bootstrap only seeds accounts}
                             {--organization-id= : Organization ID (CLI when HTTP context is not resolved)}
                             {--branch-id= : Branch ID (CLI when HTTP context is not resolved)}
                             {--user-id= : Owner user ID for seeded rows (optional; no login required in CLI)}';
 
-    protected $description = 'Bootstrap chart of accounts and default accounting mappings for the current context';
+    protected $description = 'Seed the chart of accounts. Does not create operation mappings.';
 
-    public function handle(
-        AccountingMappingSeeder $mappingSeeder,
-        AccountingMappingResolver $mappingResolver,
-    ): int {
+    public function handle(AccountingMappingSeeder $mappingSeeder): int {
         if (TenancySchemaHelper::isSingleTenant()) {
             if ($this->option('organization-id') !== null || $this->option('branch-id') !== null) {
                 $this->warn('Single tenant mode ignores --organization-id and --branch-id.');
@@ -34,7 +29,6 @@ class BootstrapCommand extends Command
 
             $ownerUserId = $this->optionalOwnerUserId();
             $beforeAccounts = $this->accountCount(0, 0);
-            $beforeMaps = $this->mappingCount(0, 0);
 
             $mappingSeeder->seedDefaultsForBranch(
                 0,
@@ -43,14 +37,11 @@ class BootstrapCommand extends Command
                 (bool) $this->option('force'),
             );
 
-            $mappingResolver->forgetBranch(0);
-
             $afterAccounts = $this->accountCount(0, 0);
-            $afterMaps = $this->mappingCount(0, 0);
 
             $this->newLine();
             $this->line(sprintf('  Accounts: %d total (%d added this run)', $afterAccounts, max(0, $afterAccounts - $beforeAccounts)));
-            $this->line(sprintf('  Document mappings: %d total (%d added this run)', $afterMaps, max(0, $afterMaps - $beforeMaps)));
+            $this->line('  Operation mappings are not seeded. Save them in your mapping screen.');
 
             return self::SUCCESS;
         }
@@ -90,7 +81,6 @@ class BootstrapCommand extends Command
         $ownerUserId = $this->optionalOwnerUserId();
 
         $beforeAccounts = $this->accountCount($orgId, $branchId);
-        $beforeMaps = $this->mappingCount($orgId, $branchId);
 
         $mappingSeeder->seedDefaultsForBranch(
             $orgId,
@@ -99,12 +89,7 @@ class BootstrapCommand extends Command
             (bool) $this->option('force'),
         );
 
-        if (TenancySchemaHelper::usesBranchId() && $branchId > 0) {
-            $mappingResolver->forgetBranch($branchId);
-        }
-
         $afterAccounts = $this->accountCount($orgId, $branchId);
-        $afterMaps = $this->mappingCount($orgId, $branchId);
 
         $this->newLine();
         $this->info(sprintf(
@@ -113,7 +98,7 @@ class BootstrapCommand extends Command
             TenancySchemaHelper::usesBranchId() ? ", branch {$branchId}" : ''
         ));
         $this->line(sprintf('  Accounts: %d total (%d added this run)', $afterAccounts, max(0, $afterAccounts - $beforeAccounts)));
-        $this->line(sprintf('  Document mappings: %d total (%d added this run)', $afterMaps, max(0, $afterMaps - $beforeMaps)));
+        $this->line('  Operation mappings are not seeded. Save them in your mapping screen.');
 
         return self::SUCCESS;
     }
@@ -121,21 +106,6 @@ class BootstrapCommand extends Command
     protected function accountCount(int $organizationId, int $branchId): int
     {
         $query = AccountingAccount::withoutGlobalScopes()->whereNull('deleted_at');
-
-        if (TenancySchemaHelper::usesOrganizationId()) {
-            $query->where('organization_id', $organizationId);
-        }
-
-        if (TenancySchemaHelper::usesBranchId() && $branchId > 0) {
-            $query->where('branch_id', $branchId);
-        }
-
-        return (int) $query->count();
-    }
-
-    protected function mappingCount(int $organizationId, int $branchId): int
-    {
-        $query = AccountingDocumentMapping::withoutGlobalScopes();
 
         if (TenancySchemaHelper::usesOrganizationId()) {
             $query->where('organization_id', $organizationId);

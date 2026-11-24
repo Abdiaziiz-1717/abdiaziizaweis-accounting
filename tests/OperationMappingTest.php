@@ -3,7 +3,6 @@
 namespace Abdiaziizaweis\Accounting\Tests;
 
 use Abdiaziizaweis\Accounting\Models\AccountingAccount;
-use Abdiaziizaweis\Accounting\Models\AccountingDocumentMapping;
 use Abdiaziizaweis\Accounting\Models\AccountingJournalEntry;
 use Abdiaziizaweis\Accounting\Models\AccountingOperationMapping;
 use Abdiaziizaweis\Accounting\Models\AccountingOperationMappingLine;
@@ -20,7 +19,6 @@ class OperationMappingTest extends TestCase
         app(AccountingMappingSeeder::class)->seedDefaultsForBranch(0, 0);
 
         $this->assertGreaterThan(10, AccountingAccount::withoutGlobalScopes()->count());
-        $this->assertSame(0, AccountingDocumentMapping::withoutGlobalScopes()->count());
         $this->assertSame(0, AccountingOperationMapping::withoutGlobalScopes()->count());
     }
 

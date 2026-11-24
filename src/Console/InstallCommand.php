@@ -69,7 +69,7 @@ class InstallCommand extends Command
             return $migrateExit;
         }
         $this->components->info('✔ Migrations ran');
-        $this->line('  MySQL/MariaDB: use package 1.0.2+ for FK-safe migrations; set tenancy_mode before first migrate.');
+        $this->line('  Set tenancy_mode before the first migrate. MySQL 8 is supported.');
 
         $bootstrapArgs = ['--force' => false];
         if ($organizationId !== null) {
@@ -81,8 +81,7 @@ class InstallCommand extends Command
 
         $bootstrapExit = $this->call('accounting:bootstrap', $bootstrapArgs);
         if ($bootstrapExit === self::SUCCESS) {
-            $this->components->info('✔ Chart of accounts seeded');
-            $this->components->info('✔ Default mappings seeded');
+            $this->components->info('✔ Chart of accounts seeded (no mappings)');
         } else {
             $this->warn('Bootstrap did not complete. Run: php artisan accounting:bootstrap --organization-id=… --branch-id=…');
         }
@@ -90,18 +89,8 @@ class InstallCommand extends Command
         $this->printManualBindingInstructions($this->resolverMap[$tenancyMode]);
 
         $this->newLine();
-        $this->line('Register your document types in AppServiceProvider:');
-        $this->newLine();
-        $this->line('use Abdiaziizaweis\Accounting\Registry\DocumentRegistry;');
-        $this->newLine();
-        $this->line('DocumentRegistry::register(');
-        $this->line("    operationKey: 'sale.recorded',");
-        $this->line("    label: 'Sale recorded',");
-        $this->line("    amountSources: ['amount', 'cost'],");
-        $this->line(');');
-        $this->line('// Then save mapping lines in your UI (PUT /operations/sale.recorded). Bootstrap does not seed them.');
-        $this->newLine();
-        $this->line('Then run: php artisan accounting:bootstrap');
+        $this->line('Save operation lines in your UI: PUT /operations/{operationKey}.');
+        $this->line('Bootstrap does not create mappings. Routes require login only — add permission checks later if you want them.');
         $this->newLine();
         $this->line(
             'Set accounting.middleware in config/accounting.php to match your app\'s auth middleware (auth, auth:sanctum, auth:api, etc.).'
